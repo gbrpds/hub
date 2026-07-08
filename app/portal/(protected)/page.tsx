@@ -1,7 +1,9 @@
 import { auth } from "@/auth";
 
+const AUTH_GATE_ENABLED = process.env.AUTH_GATE_ENABLED === "true";
+
 export default async function PortalHomePage() {
-  const session = await auth();
+  const session = AUTH_GATE_ENABLED ? await auth() : null;
 
   return (
     <div>

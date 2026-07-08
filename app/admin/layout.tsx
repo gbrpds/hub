@@ -2,14 +2,19 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 
+const AUTH_GATE_ENABLED = process.env.AUTH_GATE_ENABLED === "true";
+
 export default async function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
+  // Enquanto AUTH_GATE_ENABLED não é "true", não bloqueia acesso e não
+  // tenta ler sessão (o Auth.js pode nem estar configurado ainda).
+  // Ver proxy.ts para o motivo e como reativar o login de verdade.
+  const session = AUTH_GATE_ENABLED ? await auth() : null;
 
-  if (!session || session.user.role !== "ADMIN") {
+  if (AUTH_GATE_ENABLED && (!session || session.user.role !== "ADMIN")) {
     redirect("/login");
   }
 
@@ -20,8 +25,14 @@ export default async function AdminLayout({
           Hub <span className="text-accent">Admin</span>
         </div>
         <div className="flex flex-col gap-2 text-sm text-muted">
-          <span>{session.user.email}</span>
-          <SignOutButton />
+          {session?.user ? (
+            <>
+              <span>{session.user.email}</span>
+              <SignOutButton />
+            </>
+          ) : (
+            <span>Login desativado (dev)</span>
+          )}
         </div>
       </aside>
       <main className="flex-1 px-8 py-6">{children}</main>

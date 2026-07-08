@@ -1,12 +1,14 @@
 import { auth } from "@/auth";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 
+const AUTH_GATE_ENABLED = process.env.AUTH_GATE_ENABLED === "true";
+
 export default async function PortalLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
+  const session = AUTH_GATE_ENABLED ? await auth() : null;
 
   return (
     <div className="flex min-h-screen flex-col">

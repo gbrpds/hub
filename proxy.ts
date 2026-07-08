@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 
 const PUBLIC_PORTAL_PATHS = ["/portal/login", "/portal/verify-request"];
 
-export default auth((req) => {
+const protectedProxy = auth((req) => {
   const { pathname } = req.nextUrl;
   const session = req.auth;
   const role = session?.user?.role;
@@ -34,6 +34,18 @@ export default auth((req) => {
 
   return NextResponse.next();
 });
+
+// Trava de login DESLIGADA por padrão enquanto o Auth.js não está
+// funcionando em produção — /admin e /portal ficam acessíveis sem
+// sessão. Para reativar, defina AUTH_GATE_ENABLED=true na Vercel
+// (Settings → Environment Variables) e redeploy. Nenhum código precisa
+// mudar de novo, é só essa variável.
+export default function proxy(...args: Parameters<typeof protectedProxy>) {
+  if (process.env.AUTH_GATE_ENABLED !== "true") {
+    return NextResponse.next();
+  }
+  return protectedProxy(...args);
+}
 
 export const config = {
   matcher: ["/admin/:path*", "/portal/:path*"],
