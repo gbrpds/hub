@@ -32,50 +32,66 @@ function safeName(name: string) {
   return ext ? `${base}.${ext}` : base;
 }
 
-export type UploadTarget = { uploadUrl: string; publicUrl: string };
+export type UploadTarget =
+  | { ok: true; uploadUrl: string; publicUrl: string }
+  | { ok: false; error: string };
 
 // Gera uma URL de upload assinada. O navegador sobe o arquivo DIRETO para o
 // Storage usando essa URL — o binário nunca passa pela nossa API.
+// Retorna erro estruturado (nunca lança) para que a UI mostre a causa real
+// em vez de um 500 genérico.
 export async function createUploadUrl(
   fileName: string,
   contentType: string,
 ): Promise<UploadTarget> {
-  const allowed =
-    (await canActAsAdmin()) || (await getCurrentClientId()) != null;
-  if (!allowed) throw new Error("Sem permissão para enviar arquivos.");
+  try {
+    const allowed =
+      (await canActAsAdmin()) || (await getCurrentClientId()) != null;
+    if (!allowed) return { ok: false, error: "Sem permissão para enviar arquivos." };
 
-  if (!isAllowedType(contentType)) {
-    throw new Error("Tipo de arquivo não permitido.");
-  }
-
-  const path = `${Date.now()}-${randomUUID()}-${safeName(fileName)}`;
-
-  // Sem Supabase configurado: em desenvolvimento usa um endpoint mock local
-  // que aceita o PUT (armazena em /tmp só para testar o fluxo). Em produção,
-  // exige a configuração do Storage.
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error(
-        "Storage não configurado. Defina SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY.",
-      );
+    if (!isAllowedType(contentType)) {
+      return { ok: false, error: "Tipo de arquivo não permitido." };
     }
-    const mock = `/api/dev-upload/${encodeURIComponent(path)}`;
-    return { uploadUrl: mock, publicUrl: mock };
+
+    const path = `${Date.now()}-${randomUUID()}-${safeName(fileName)}`;
+
+    // Sem Supabase configurado: em desenvolvimento usa um endpoint mock local
+    // que aceita o PUT (armazena em /tmp só para testar o fluxo). Em produção,
+    // exige a configuração do Storage.
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      if (process.env.NODE_ENV === "production") {
+        return {
+          ok: false,
+          error:
+            "Storage não configurado na Vercel (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY).",
+        };
+      }
+      const mock = `/api/dev-upload/${encodeURIComponent(path)}`;
+      return { ok: true, uploadUrl: mock, publicUrl: mock };
+    }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const { data, error } = await supabase.storage
+      .from(BUCKET)
+      .createSignedUploadUrl(path);
+
+    if (error || !data) {
+      return {
+        ok: false,
+        error: `Supabase: ${error?.message ?? "falha ao gerar URL"} (bucket "${BUCKET}")`,
+      };
+    }
+
+    // data.signedUrl já é a URL completa de upload (com o token). O navegador
+    // faz o PUT direto nela.
+    const publicUrl = supabase.storage.from(BUCKET).getPublicUrl(path).data
+      .publicUrl;
+
+    return { ok: true, uploadUrl: data.signedUrl, publicUrl };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Erro inesperado no upload.",
+    };
   }
-
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-  const { data, error } = await supabase.storage
-    .from(BUCKET)
-    .createSignedUploadUrl(path);
-
-  if (error || !data) {
-    throw new Error(error?.message ?? "Falha ao gerar URL de upload.");
-  }
-
-  // data.signedUrl já é a URL completa de upload (com o token). O navegador
-  // faz o PUT direto nela.
-  const publicUrl = supabase.storage.from(BUCKET).getPublicUrl(path).data
-    .publicUrl;
-
-  return { uploadUrl: data.signedUrl, publicUrl };
 }

@@ -70,10 +70,20 @@ export function FileUploader({
     let target;
     try {
       target = await createUploadUrl(file.name, file.type);
-    } catch {
+    } catch (err) {
       update(id, { status: "error" });
+      setError(err instanceof Error ? err.message : "Falha ao iniciar upload.");
       return;
     }
+
+    if (!target.ok) {
+      update(id, { status: "error" });
+      setError(target.error);
+      return;
+    }
+
+    const uploadUrl = target.uploadUrl;
+    const publicUrl = target.publicUrl;
 
     // O Storage do Supabase espera multipart/form-data com o arquivo no
     // campo de nome vazio ("") e um campo cacheControl — igual ao que o
@@ -85,7 +95,7 @@ export function FileUploader({
 
     const xhr = new XMLHttpRequest();
     update(id, { xhr });
-    xhr.open("PUT", target.uploadUrl);
+    xhr.open("PUT", uploadUrl);
 
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable) {
@@ -95,14 +105,20 @@ export function FileUploader({
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         update(id, { status: "done", progress: 1 });
-        onUploaded({ url: target.publicUrl, name: file.name });
+        onUploaded({ url: publicUrl, name: file.name });
         setTimeout(() => remove(id), 700);
       } else {
         console.error("Upload falhou:", xhr.status, xhr.responseText);
         update(id, { status: "error" });
+        setError(
+          `Envio recusado pelo Storage (${xhr.status}). ${xhr.responseText?.slice(0, 200) ?? ""}`,
+        );
       }
     };
-    xhr.onerror = () => update(id, { status: "error" });
+    xhr.onerror = () => {
+      update(id, { status: "error" });
+      setError("Falha de rede ao enviar o arquivo para o Storage.");
+    };
     xhr.onabort = () => remove(id);
     xhr.send(form);
   }
