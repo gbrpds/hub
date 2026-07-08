@@ -7,6 +7,7 @@ const AUTH_GATE_ENABLED = process.env.AUTH_GATE_ENABLED === "true";
 
 const NAV_LINKS = [
   { href: "/admin/dashboard", label: "Dashboard" },
+  { href: "/admin/demandas", label: "Demandas" },
   { href: "/admin/todo", label: "To-do" },
 ];
 
