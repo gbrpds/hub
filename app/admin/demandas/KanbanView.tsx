@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/format";
@@ -69,9 +70,12 @@ export function KanbanView({
                   }
                   className="cursor-grab rounded-sm border border-border bg-background p-3 active:cursor-grabbing"
                 >
-                  <p className="text-sm font-medium text-foreground">
+                  <Link
+                    href={`/admin/demandas/${demand.id}`}
+                    className="text-sm font-medium text-foreground hover:text-accent"
+                  >
                     {demand.title}
-                  </p>
+                  </Link>
 
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <PriorityTag priority={demand.priority} />

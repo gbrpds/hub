@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { formatDate } from "@/lib/format";
 import { CONTENT_TYPE_LABEL, type DemandCard } from "@/lib/demand-meta";
 import { Avatar, PriorityTag, StatusBadge } from "./parts";
@@ -29,7 +30,12 @@ export function ListView({ demands }: { demands: DemandCard[] }) {
               className="border-b border-border last:border-0 hover:bg-surface"
             >
               <td className="px-3 py-2">
-                <span className="font-medium text-foreground">{demand.title}</span>
+                <Link
+                  href={`/admin/demandas/${demand.id}`}
+                  className="font-medium text-foreground hover:text-accent"
+                >
+                  {demand.title}
+                </Link>
                 {demand.contentType && (
                   <span className="ml-2 text-xs text-muted">
                     {CONTENT_TYPE_LABEL[demand.contentType]}
