@@ -26,6 +26,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
+        // Bypass temporário pra desenvolvimento: com AUTH_DEV_BYPASS=true
+        // qualquer e-mail/senha loga como ADMIN, sem checar o banco.
+        // NUNCA deixe essa variável setada em produção depois que o
+        // login de verdade estiver funcionando.
+        if (process.env.AUTH_DEV_BYPASS === "true") {
+          return {
+            id: "dev-bypass-admin",
+            email,
+            name: "Admin (dev bypass)",
+            role: "ADMIN",
+            clientId: null,
+          };
+        }
+
         const user = await prisma.user.findUnique({ where: { email } });
 
         if (!user || user.role !== "ADMIN" || !user.passwordHash) {
