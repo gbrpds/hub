@@ -24,6 +24,20 @@ export const STATUS_META: Record<DemandStatus, { label: string; color: string }>
   INTERNO: { label: "Interno", color: "#737373" },
 };
 
+// Rótulos amigáveis para o cliente (sem jargão) usados no portal.
+export const CLIENT_STATUS_META: Record<
+  DemandStatus,
+  { label: string; color: string }
+> = {
+  RECEBIDA: { label: "Na fila", color: "#3b82f6" },
+  EM_PRODUCAO: { label: "Em produção", color: "#ff5c00" },
+  APROVACAO: { label: "Aguardando sua aprovação", color: "#eab308" },
+  PROGRAMAR: { label: "Agendado", color: "#a855f7" },
+  CONCLUIDO: { label: "Publicado", color: "#22c55e" },
+  REPROVADO: { label: "Em ajustes", color: "#ef4444" },
+  INTERNO: { label: "Interno", color: "#737373" },
+};
+
 export const PRIORITY_ORDER: Priority[] = ["URGENTE", "ALTA", "MEDIA", "BAIXA"];
 
 export const PRIORITY_META: Record<Priority, { label: string; color: string }> = {

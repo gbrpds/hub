@@ -56,7 +56,13 @@ function groupOf(status: DemandStatus): GroupKey | null {
   return GROUPS.find((group) => group.statuses.includes(status))?.key ?? null;
 }
 
-export function CronogramaClient({ demands }: { demands: CalendarDemand[] }) {
+export function CronogramaClient({
+  demands,
+  hrefBase = "/admin/demandas",
+}: {
+  demands: CalendarDemand[];
+  hrefBase?: string;
+}) {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth()); // 0-11
@@ -229,7 +235,7 @@ export function CronogramaClient({ demands }: { demands: CalendarDemand[] }) {
                         {dayDemands.map((demand) => (
                           <Link
                             key={demand.id}
-                            href={`/admin/demandas/${demand.id}`}
+                            href={`${hrefBase}/${demand.id}`}
                             className="flex items-center gap-1 rounded-sm border border-border bg-surface px-1.5 py-1 text-[11px] text-foreground hover:border-accent"
                           >
                             <span
@@ -259,7 +265,7 @@ export function CronogramaClient({ demands }: { demands: CalendarDemand[] }) {
               .map((demand) => (
                 <Link
                   key={demand.id}
-                  href={`/admin/demandas/${demand.id}`}
+                  href={`${hrefBase}/${demand.id}`}
                   className="flex items-center justify-between gap-3 border border-border bg-surface px-3 py-2 hover:border-accent"
                 >
                   <span className="flex min-w-0 items-center gap-2">
