@@ -28,15 +28,26 @@ export function NewDemandModal({
   clients: ClientOption[];
 }) {
   const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <Modal open={open} onClose={onClose} title="Nova demanda" className="max-w-lg">
       <form
         action={async (formData) => {
           setPending(true);
-          await createDemand(formData);
-          setPending(false);
-          onClose();
+          setError(null);
+          try {
+            const result = await createDemand(formData);
+            if (result?.ok) {
+              onClose();
+            } else {
+              setError(result?.error ?? "Não foi possível criar a demanda.");
+            }
+          } catch {
+            setError("Algo deu errado. Tente novamente.");
+          } finally {
+            setPending(false);
+          }
         }}
         className="flex flex-col gap-4"
       >
@@ -103,6 +114,8 @@ export function NewDemandModal({
             className="w-full rounded border border-border bg-surface px-3 py-2 text-sm text-foreground transition-colors focus:border-accent focus:outline-none"
           />
         </label>
+
+        {error && <p className="text-sm text-danger">{error}</p>}
 
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onClose}>

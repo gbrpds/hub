@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { canActAsAdmin } from "@/lib/guards";
 import { getCurrentAdminId } from "@/lib/current-user";
 import { logActivity } from "@/lib/activity";
 import { STATUS_META } from "@/lib/demand-meta";
@@ -44,8 +45,9 @@ function revalidateDemands() {
 }
 
 export async function createDemand(formData: FormData) {
+  if (!(await canActAsAdmin())) return { ok: false as const, error: "Sem permissão." };
   const title = String(formData.get("title") ?? "").trim();
-  if (!title) return;
+  if (!title) return { ok: false as const, error: "Dê um título para a demanda." };
 
   await prisma.demand.create({
     data: {
@@ -60,9 +62,11 @@ export async function createDemand(formData: FormData) {
   });
 
   revalidateDemands();
+  return { ok: true as const };
 }
 
 export async function updateDemandStatus(id: string, status: string) {
+  if (!(await canActAsAdmin())) return;
   const parsed = parseEnum<DemandStatus>(status, STATUSES, null);
   if (!parsed) return;
 
@@ -80,6 +84,7 @@ export async function updateDemandStatus(id: string, status: string) {
 }
 
 export async function sendToApproval(id: string) {
+  if (!(await canActAsAdmin())) return;
   await updateDemandStatus(id, "APROVACAO");
 }
 
@@ -88,6 +93,7 @@ export async function updateDemandField(
   field: string,
   value: string,
 ) {
+  if (!(await canActAsAdmin())) return;
   const data: Record<string, unknown> = {};
 
   switch (field) {
@@ -127,6 +133,7 @@ export async function updateDemandField(
 }
 
 export async function addSubtask(demandId: string, title: string) {
+  if (!(await canActAsAdmin())) return;
   const trimmed = title.trim();
   if (!trimmed) return;
   await prisma.subtask.create({ data: { title: trimmed, demandId } });
@@ -134,16 +141,19 @@ export async function addSubtask(demandId: string, title: string) {
 }
 
 export async function toggleSubtask(id: string, done: boolean) {
+  if (!(await canActAsAdmin())) return;
   await prisma.subtask.update({ where: { id }, data: { done } });
   revalidateDemands();
 }
 
 export async function deleteSubtask(id: string) {
+  if (!(await canActAsAdmin())) return;
   await prisma.subtask.delete({ where: { id } });
   revalidateDemands();
 }
 
 export async function addComment(demandId: string, text: string) {
+  if (!(await canActAsAdmin())) return;
   const trimmed = text.trim();
   if (!trimmed) return;
 
@@ -169,6 +179,7 @@ export async function addAttachment(
   url: string,
   fileName: string,
 ) {
+  if (!(await canActAsAdmin())) return;
   const parsedType = parseEnum<AttachmentType>(type, ATTACHMENT_TYPES, null);
   if (!parsedType || !url) return;
 
@@ -189,6 +200,7 @@ export async function addAttachment(
 }
 
 export async function deleteAttachment(id: string) {
+  if (!(await canActAsAdmin())) return;
   await prisma.attachment.delete({ where: { id } });
   revalidateDemands();
 }

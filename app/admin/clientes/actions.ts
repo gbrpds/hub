@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { canActAsAdmin } from "@/lib/guards";
 import type { ClientStatus } from "@/app/generated/prisma/client";
 
 function str(value: FormDataEntryValue | null): string | null {
@@ -40,8 +41,9 @@ function parseDate(value: FormDataEntryValue | string | null): Date | null {
 }
 
 export async function createClient(formData: FormData) {
+  if (!(await canActAsAdmin())) return { ok: false as const, error: "Sem permissão." };
   const name = String(formData.get("name") ?? "").trim();
-  if (!name) return;
+  if (!name) return { ok: false as const, error: "Digite o nome do cliente." };
 
   await prisma.client.create({
     data: {
@@ -64,6 +66,7 @@ export async function createClient(formData: FormData) {
   });
 
   revalidatePath("/admin/clientes");
+  return { ok: true as const };
 }
 
 export async function updateClientField(
@@ -71,6 +74,7 @@ export async function updateClientField(
   field: string,
   value: string,
 ) {
+  if (!(await canActAsAdmin())) return;
   const data: Record<string, unknown> = {};
 
   switch (field) {
@@ -123,6 +127,7 @@ export async function updateClientField(
 // Dá ou revoga o acesso do cliente ao portal, criando ou removendo o
 // User (role CLIENT) vinculado ao registro do cliente.
 export async function toggleClientPortalAccess(clientId: string) {
+  if (!(await canActAsAdmin())) return;
   const client = await prisma.client.findUnique({
     where: { id: clientId },
     select: { contactEmail: true },

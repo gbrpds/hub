@@ -36,25 +36,35 @@ export default async function PortalProtectedLayout({
     : null;
 
   return (
-    <div className="flex min-h-screen">
-      <aside className="flex w-56 shrink-0 flex-col justify-between border-r border-border bg-surface px-4 py-6">
-        <div className="flex flex-col gap-6">
-          <div className="text-lg font-bold tracking-tight text-foreground">
-            Portal <span className="text-accent">do Cliente</span>
+    <div className="flex min-h-screen flex-col md:flex-row">
+      {/* No mobile vira uma barra no topo; no desktop, sidebar à esquerda. */}
+      <aside className="flex flex-col gap-3 border-b border-border bg-surface px-4 py-4 md:w-56 md:shrink-0 md:justify-between md:gap-0 md:border-b-0 md:border-r md:py-6">
+        <div className="flex flex-col gap-3 md:gap-6">
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-lg font-bold tracking-tight text-foreground">
+              Portal <span className="text-accent">do Cliente</span>
+            </div>
+            {/* Conta no mobile (canto superior direito) */}
+            {AUTH_GATE_ENABLED && (
+              <div className="md:hidden">
+                <SignOutButton />
+              </div>
+            )}
           </div>
-          <nav className="flex flex-col gap-1">
+          <nav className="flex gap-1 overflow-x-auto pb-1 md:flex-col md:overflow-visible md:pb-0">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="rounded-sm px-2 py-2 text-sm text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+                className="whitespace-nowrap rounded-sm px-3 py-2 text-sm text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
               >
                 {link.label}
               </Link>
             ))}
           </nav>
         </div>
-        <div className="flex flex-col gap-2 text-sm text-muted">
+        {/* Rodapé com nome + sair: só no desktop */}
+        <div className="hidden flex-col gap-2 text-sm text-muted md:flex">
           {client && <span className="font-medium text-foreground">{client.name}</span>}
           {AUTH_GATE_ENABLED ? (
             <SignOutButton />
@@ -63,7 +73,7 @@ export default async function PortalProtectedLayout({
           )}
         </div>
       </aside>
-      <main className="flex-1 px-6 py-6 sm:px-10">{children}</main>
+      <main className="flex-1 px-4 py-6 sm:px-6 md:px-10">{children}</main>
     </div>
   );
 }

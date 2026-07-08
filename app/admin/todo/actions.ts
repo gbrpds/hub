@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { canActAsAdmin } from "@/lib/guards";
 import { getCurrentAdminId } from "@/lib/current-user";
 
 const PRIORITIES = ["URGENTE", "ALTA", "MEDIA", "BAIXA"] as const;
@@ -21,6 +22,7 @@ function parseDueDate(value: FormDataEntryValue | null): Date | null {
 }
 
 export async function createTask(formData: FormData) {
+  if (!(await canActAsAdmin())) return;
   const ownerId = await getCurrentAdminId();
   if (!ownerId) return;
 
@@ -40,6 +42,7 @@ export async function createTask(formData: FormData) {
 }
 
 export async function updateTask(id: string, formData: FormData) {
+  if (!(await canActAsAdmin())) return;
   const title = String(formData.get("title") ?? "").trim();
   if (!title) return;
 
@@ -56,11 +59,13 @@ export async function updateTask(id: string, formData: FormData) {
 }
 
 export async function toggleTask(id: string, done: boolean) {
+  if (!(await canActAsAdmin())) return;
   await prisma.task.update({ where: { id }, data: { done } });
   revalidatePath("/admin/todo");
 }
 
 export async function deleteTask(id: string) {
+  if (!(await canActAsAdmin())) return;
   await prisma.task.delete({ where: { id } });
   revalidatePath("/admin/todo");
 }

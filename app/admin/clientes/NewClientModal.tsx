@@ -18,15 +18,26 @@ export function NewClientModal({
   onClose: () => void;
 }) {
   const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <Modal open={open} onClose={onClose} title="Novo cliente" className="max-w-2xl">
       <form
         action={async (formData) => {
           setPending(true);
-          await createClient(formData);
-          setPending(false);
-          onClose();
+          setError(null);
+          try {
+            const result = await createClient(formData);
+            if (result?.ok) {
+              onClose();
+            } else {
+              setError(result?.error ?? "Não foi possível criar o cliente.");
+            }
+          } catch {
+            setError("Algo deu errado. Tente novamente.");
+          } finally {
+            setPending(false);
+          }
         }}
         className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto pr-1"
       >
@@ -82,6 +93,8 @@ export function NewClientModal({
             placeholder="https://chat.whatsapp.com/..."
           />
         </div>
+
+        {error && <p className="text-sm text-danger">{error}</p>}
 
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="outline" onClick={onClose}>
