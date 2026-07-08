@@ -7,6 +7,8 @@ import { prisma } from "@/lib/prisma";
 // rodar comandos localmente. Protegida por ADMIN_BOOTSTRAP_SECRET.
 // Depois de usar, remova essa variável de ambiente na Vercel para
 // desativar a rota (ela responde 404 se a variável não existir).
+export const dynamic = "force-dynamic";
+
 function secretsMatch(a: string, b: string) {
   const bufA = Buffer.from(a);
   const bufB = Buffer.from(b);

@@ -5,6 +5,12 @@ import { prisma } from "@/lib/prisma";
 // cada variável necessária está presente e se o banco responde.
 // Útil pra descobrir por que o login está caindo na tela genérica de
 // "Server error" do Auth.js (quase sempre falta alguma env var).
+//
+// force-dynamic: essa rota não usa nada que o Next.js reconheça como
+// dinâmico (cookies, params), então sem essa flag ele poderia otimizar
+// como página estática e "congelar" a resposta no momento do build.
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const checks: Record<string, string> = {
     AUTH_SECRET: process.env.AUTH_SECRET ? "configurado" : "FALTANDO",
