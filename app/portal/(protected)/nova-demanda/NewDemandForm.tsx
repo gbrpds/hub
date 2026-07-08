@@ -1,15 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { FileUploader } from "@/components/upload/FileUploader";
 import { mediaKind, BLUR_DATA_URL } from "@/lib/media";
 import { createClientDemand } from "@/app/portal/actions";
-
-const MAX_BYTES = 8 * 1024 * 1024;
 
 const CONTENT_TYPES = [
   { value: "", label: "Não sei / tanto faz" },
@@ -32,41 +31,16 @@ const fieldClass =
 
 type Attached = { name: string; url: string };
 
-function readAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
-
 export function NewDemandForm() {
   const router = useRouter();
-  const inputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState("");
   const [details, setDetails] = useState("");
   const [contentType, setContentType] = useState("");
   const [publishDate, setPublishDate] = useState("");
   const [priority, setPriority] = useState("MEDIA");
   const [files, setFiles] = useState<Attached[]>([]);
-  const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-
-  async function addFiles(fileList: FileList | null) {
-    if (!fileList) return;
-    setError(null);
-    const added: Attached[] = [];
-    for (const file of Array.from(fileList)) {
-      if (file.size > MAX_BYTES) {
-        setError(`"${file.name}" passa de 8MB e não foi anexado.`);
-        continue;
-      }
-      added.push({ name: file.name, url: await readAsDataUrl(file) });
-    }
-    setFiles((prev) => [...prev, ...added]);
-  }
 
   function submit() {
     if (!title.trim()) {
@@ -125,33 +99,11 @@ export function NewDemandForm() {
         <label className="mb-1.5 block text-sm font-medium text-foreground">
           Anexos (fotos, vídeos, referências)
         </label>
-        <div
-          onDragOver={(event) => {
-            event.preventDefault();
-            setDragging(true);
-          }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={(event) => {
-            event.preventDefault();
-            setDragging(false);
-            addFiles(event.dataTransfer.files);
-          }}
-          onClick={() => inputRef.current?.click()}
-          className={cn(
-            "flex cursor-pointer flex-col items-center justify-center rounded border border-dashed border-border bg-background px-4 py-8 text-center text-sm text-muted transition-colors hover:border-accent",
-            dragging && "border-accent bg-surface",
-          )}
-        >
-          Arraste arquivos aqui ou clique para escolher
-          <input
-            ref={inputRef}
-            type="file"
-            hidden
-            multiple
-            accept="image/*,video/*"
-            onChange={(event) => addFiles(event.target.files)}
-          />
-        </div>
+        <FileUploader
+          variant="dropzone"
+          multiple
+          onUploaded={(file) => setFiles((prev) => [...prev, file])}
+        />
         {files.length > 0 && (
           <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
             {files.map((file, index) => (

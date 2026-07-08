@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
+import { FileUploader } from "@/components/upload/FileUploader";
 import { updateClientField, toggleClientPortalAccess } from "../actions";
 
 const inputClass =
@@ -116,46 +117,37 @@ export function PhotoEditor({
   name: string;
   photoUrl: string | null;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-
-  function handleFile(file: File | undefined) {
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      setError("Imagem acima de 2MB.");
-      return;
-    }
-    setError(null);
-    const reader = new FileReader();
-    reader.onload = () => {
-      startTransition(() =>
-        updateClientField(clientId, "photoUrl", String(reader.result)),
-      );
-    };
-    reader.readAsDataURL(file);
-  }
+  const [, startTransition] = useTransition();
 
   return (
     <div className="flex flex-col items-center gap-2">
       <Avatar name={name} photoUrl={photoUrl} size={80} />
-      <button
-        type="button"
-        disabled={isPending}
-        onClick={() => inputRef.current?.click()}
-        className="text-xs text-muted underline hover:text-foreground"
-      >
-        {isPending ? "Enviando..." : "Trocar foto"}
-      </button>
-      {error && <span className="text-xs text-danger">{error}</span>}
-      <input
-        ref={inputRef}
-        type="file"
-        hidden
+      <FileUploader
+        label="Trocar foto"
         accept="image/*"
-        onChange={(event) => handleFile(event.target.files?.[0])}
+        onUploaded={(file) =>
+          startTransition(() =>
+            updateClientField(clientId, "photoUrl", file.url),
+          )
+        }
       />
     </div>
+  );
+}
+
+// Upload do contrato (PDF ou imagem) — grava a URL em contractUrl.
+export function ContractUploader({ clientId }: { clientId: string }) {
+  const [, startTransition] = useTransition();
+  return (
+    <FileUploader
+      label="Enviar contrato"
+      accept="application/pdf,image/*"
+      onUploaded={(file) =>
+        startTransition(() =>
+          updateClientField(clientId, "contractUrl", file.url),
+        )
+      }
+    />
   );
 }
 

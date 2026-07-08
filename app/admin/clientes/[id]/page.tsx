@@ -11,6 +11,7 @@ import {
   PhotoEditor,
   PortalAccessButton,
   ServiceTags,
+  ContractUploader,
 } from "./fields";
 
 export const dynamic = "force-dynamic";
@@ -221,7 +222,7 @@ export default async function ClientDetailPage({
             </p>
           </div>
         </div>
-        <div className="mt-4">
+        <div className="mt-4 flex flex-col gap-3">
           <EditableField
             clientId={client.id}
             field="contractUrl"
@@ -229,8 +230,21 @@ export default async function ClientDetailPage({
             initialValue={client.contractUrl ?? ""}
             placeholder="https://..."
           />
+          <div className="flex flex-wrap items-center gap-3">
+            <ContractUploader clientId={client.id} />
+            {client.contractUrl && (
+              <a
+                href={client.contractUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-accent hover:underline"
+              >
+                Ver contrato atual
+              </a>
+            )}
+          </div>
           {client.contractStartDate && (
-            <p className="mt-2 text-xs text-muted">
+            <p className="text-xs text-muted">
               Início do contrato: {formatDate(client.contractStartDate)}
             </p>
           )}

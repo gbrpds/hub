@@ -1,22 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
+import { FileUploader } from "@/components/upload/FileUploader";
 import { mediaKind, BLUR_DATA_URL } from "@/lib/media";
 import { addAttachment, deleteAttachment } from "../actions";
 import type { AttachmentItem } from "./types";
-
-const MAX_BYTES = 8 * 1024 * 1024; // 8MB por arquivo
-
-function readAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
 
 function Preview({ attachment }: { attachment: AttachmentItem }) {
   const kind = mediaKind(attachment.url, attachment.fileName);
@@ -63,63 +53,30 @@ export function Attachments({
   attachments: AttachmentItem[];
   variant: "grid" | "carousel";
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [error, setError] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const title = type === "CLIENTE" ? "Anexos do cliente" : "Entrega";
-
-  async function handleFiles(files: FileList | null) {
-    if (!files || files.length === 0) return;
-    setError(null);
-
-    for (const file of Array.from(files)) {
-      if (file.size > MAX_BYTES) {
-        setError(`"${file.name}" passa de 8MB e não foi enviado.`);
-        continue;
-      }
-      const url = await readAsDataUrl(file);
-      await new Promise<void>((resolve) => {
-        startTransition(async () => {
-          await addAttachment(demandId, type, url, file.name);
-          resolve();
-        });
-      });
-    }
-
-    if (inputRef.current) inputRef.current.value = "";
-  }
 
   const safeIndex = Math.min(index, Math.max(attachments.length - 1, 0));
   const current = attachments[safeIndex];
 
   return (
     <section>
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex items-start justify-between gap-3">
         <h2 className="text-sm font-bold tracking-tight text-foreground">
           {title}{" "}
           <span className="text-muted">({attachments.length})</span>
         </h2>
-        <Button
-          size="sm"
-          variant="secondary"
-          disabled={isPending}
-          onClick={() => inputRef.current?.click()}
-        >
-          {isPending ? "Enviando..." : "Enviar arquivo"}
-        </Button>
-        <input
-          ref={inputRef}
-          type="file"
-          hidden
+        <FileUploader
           multiple={type === "ENTREGA"}
-          accept="image/*,video/*"
-          onChange={(event) => handleFiles(event.target.files)}
+          onUploaded={(file) =>
+            startTransition(() =>
+              addAttachment(demandId, type, file.url, file.name),
+            )
+          }
         />
       </div>
-
-      {error && <p className="mb-2 text-xs text-danger">{error}</p>}
 
       {attachments.length === 0 ? (
         <p className="text-sm text-muted">Nenhum arquivo ainda.</p>
