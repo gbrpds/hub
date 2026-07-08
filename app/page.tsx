@@ -11,13 +11,13 @@ export default function HomePage() {
       </p>
       <div className="flex gap-4">
         <Link
-          href="/dashboard"
+          href="/login"
           className="border border-border bg-surface px-5 py-2.5 font-semibold text-foreground transition-colors hover:bg-surface-hover"
         >
           Área Admin
         </Link>
         <Link
-          href="/portal"
+          href="/portal/login"
           className="bg-accent px-5 py-2.5 font-semibold text-accent-foreground transition-opacity hover:opacity-90"
         >
           Portal do Cliente
