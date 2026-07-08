@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0a0a0a;
+  --surface: #131313;
+  --surface-hover: #1a1a1a;
+  --border: #262626;
+  --foreground: #f5f5f5;
+  --muted: #a3a3a3;
+  --accent: #ff5c00;
+  --accent-foreground: #0a0a0a;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --radius: 2px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --radius-DEFAULT: var(--radius);
+  --radius-sm: 1px;
+  --radius-md: var(--radius);
+  --radius-lg: 4px;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
