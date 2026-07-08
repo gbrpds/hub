@@ -1,11 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { mediaKind } from "@/lib/media";
+import { mediaKind, BLUR_DATA_URL } from "@/lib/media";
 import { createClientDemand } from "@/app/portal/actions";
 
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -159,12 +160,17 @@ export function NewDemandForm() {
                 className="flex flex-col gap-1 rounded-sm border border-border bg-background p-1"
               >
                 {mediaKind(file.url, file.name) === "image" ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={file.url}
-                    alt={file.name}
-                    className="h-20 w-full rounded-sm object-cover"
-                  />
+                  <div className="relative h-20 w-full">
+                    <Image
+                      src={file.url}
+                      alt={file.name}
+                      fill
+                      sizes="(max-width: 640px) 50vw, 33vw"
+                      placeholder="blur"
+                      blurDataURL={BLUR_DATA_URL}
+                      className="rounded-sm object-cover"
+                    />
+                  </div>
                 ) : mediaKind(file.url, file.name) === "video" ? (
                   <video src={file.url} className="h-20 w-full rounded-sm bg-black" />
                 ) : (

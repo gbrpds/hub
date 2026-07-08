@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useOptimistic, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import {
@@ -25,17 +26,23 @@ export function DemandasClient({
   demands,
   clients,
   users,
+  hasMore,
+  nextTake,
 }: {
   demands: DemandCard[];
   clients: ClientOption[];
   users: UserOption[];
+  hasMore: boolean;
+  nextTake: number;
 }) {
+  const router = useRouter();
   const [view, setView] = useState<View>("kanban");
   const [filterClient, setFilterClient] = useState("");
   const [filterAssignee, setFilterAssignee] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [loadingMore, startLoadMore] = useTransition();
   const [, startTransition] = useTransition();
 
   const [optimisticDemands, applyOptimistic] = useOptimistic(
@@ -159,6 +166,22 @@ export function DemandasClient({
         <KanbanView demands={filtered} onMove={handleMove} />
       ) : (
         <ListView demands={filtered} />
+      )}
+
+      {hasMore && (
+        <div className="flex justify-center pt-2">
+          <Button
+            variant="secondary"
+            disabled={loadingMore}
+            onClick={() =>
+              startLoadMore(() =>
+                router.push(`/admin/demandas?take=${nextTake}`, { scroll: false }),
+              )
+            }
+          >
+            {loadingMore ? "Carregando..." : "Carregar mais"}
+          </Button>
+        </div>
       )}
 
       <NewDemandModal

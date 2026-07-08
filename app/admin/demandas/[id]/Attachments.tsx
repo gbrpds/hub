@@ -1,8 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import { useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
-import { mediaKind } from "@/lib/media";
+import { mediaKind, BLUR_DATA_URL } from "@/lib/media";
 import { addAttachment, deleteAttachment } from "../actions";
 import type { AttachmentItem } from "./types";
 
@@ -22,12 +23,17 @@ function Preview({ attachment }: { attachment: AttachmentItem }) {
 
   if (kind === "image") {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={attachment.url}
-        alt={attachment.fileName ?? "anexo"}
-        className="max-h-72 w-full rounded-sm border border-border object-contain bg-background"
-      />
+      <div className="relative h-72 w-full rounded-sm border border-border bg-background">
+        <Image
+          src={attachment.url}
+          alt={attachment.fileName ?? "anexo"}
+          fill
+          sizes="(max-width: 768px) 100vw, 50vw"
+          placeholder="blur"
+          blurDataURL={BLUR_DATA_URL}
+          className="object-contain"
+        />
+      </div>
     );
   }
   if (kind === "video") {

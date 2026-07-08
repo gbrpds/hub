@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentClientId } from "@/lib/current-user";
-import { mediaKind } from "@/lib/media";
 import { DemandasGrid, type PortalDemandCard } from "./DemandasGrid";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +8,8 @@ export default async function PortalDemandasPage() {
   const clientId = await getCurrentClientId();
 
   // Sempre filtra por clientId — nunca mostra demanda de outro cliente.
+  // Não trazemos o binário do anexo aqui (data URL pesado): buscamos só a
+  // existência de uma entrega. A mídia real carrega na tela de detalhe.
   const demands = clientId
     ? await prisma.demand.findMany({
         where: { clientId },
@@ -19,24 +20,19 @@ export default async function PortalDemandasPage() {
           status: true,
           attachments: {
             where: { type: "ENTREGA" },
-            orderBy: { createdAt: "asc" },
             take: 1,
-            select: { url: true, fileName: true },
+            select: { id: true },
           },
         },
       })
     : [];
 
-  const cards: PortalDemandCard[] = demands.map((demand) => {
-    const preview = demand.attachments[0];
-    return {
-      id: demand.id,
-      title: demand.title,
-      status: demand.status,
-      previewUrl: preview?.url ?? null,
-      previewKind: preview ? mediaKind(preview.url, preview.fileName) : null,
-    };
-  });
+  const cards: PortalDemandCard[] = demands.map((demand) => ({
+    id: demand.id,
+    title: demand.title,
+    status: demand.status,
+    hasDelivery: demand.attachments.length > 0,
+  }));
 
   return (
     <div>

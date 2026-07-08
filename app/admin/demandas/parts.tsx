@@ -1,6 +1,9 @@
-"use client";
-
+// Componentes puramente visuais (sem estado/eventos): não precisam ser
+// client components. Como "shared", funcionam tanto em Server Components
+// (ex: ficha do cliente) quanto dentro de client components (kanban/lista).
+import Image from "next/image";
 import { STATUS_META, PRIORITY_META } from "@/lib/demand-meta";
+import { BLUR_DATA_URL } from "@/lib/media";
 import type { DemandStatus, Priority } from "@/app/generated/prisma/client";
 
 export function Avatar({
@@ -14,10 +17,14 @@ export function Avatar({
 }) {
   if (photoUrl) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
+      <Image
         src={photoUrl}
         alt={name}
+        width={size}
+        height={size}
+        sizes={`${size}px`}
+        placeholder="blur"
+        blurDataURL={BLUR_DATA_URL}
         className="shrink-0 rounded-sm border border-border object-cover"
         style={{ width: size, height: size }}
       />

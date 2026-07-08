@@ -4,6 +4,8 @@ import { ClientesClient, type ClientCard } from "./ClientesClient";
 
 export const dynamic = "force-dynamic";
 
+const PAGE_SIZE = 30;
+
 function SummaryCard({ label, value }: { label: string; value: number }) {
   return (
     <Card>
@@ -15,32 +17,56 @@ function SummaryCard({ label, value }: { label: string; value: number }) {
   );
 }
 
-export default async function ClientesPage() {
+export default async function ClientesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ take?: string }>;
+}) {
+  const { take: takeParam } = await searchParams;
+  const take = Math.min(Math.max(Number(takeParam) || PAGE_SIZE, PAGE_SIZE), 1000);
+
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-  const [clients, deliveredThisMonth] = await Promise.all([
-    prisma.client.findMany({
-      orderBy: { name: "asc" },
-      include: { _count: { select: { demands: true } } },
-    }),
-    prisma.demand.findMany({
-      where: {
-        status: "CONCLUIDO",
-        clientId: { not: null },
-        updatedAt: { gte: startOfMonth, lt: startOfNextMonth },
-      },
-      select: { clientId: true },
-      distinct: ["clientId"],
-    }),
-  ]);
+  // Contadores do topo via count (independentes da paginação da lista).
+  const [total, ativos, comWhatsapp, deliveredThisMonth, clients] =
+    await Promise.all([
+      prisma.client.count(),
+      prisma.client.count({ where: { status: "ATIVO" } }),
+      prisma.client.count({ where: { whatsappGroupUrl: { not: null } } }),
+      prisma.demand.findMany({
+        where: {
+          status: "CONCLUIDO",
+          clientId: { not: null },
+          updatedAt: { gte: startOfMonth, lt: startOfNextMonth },
+        },
+        select: { clientId: true },
+        distinct: ["clientId"],
+      }),
+      prisma.client.findMany({
+        orderBy: { name: "asc" },
+        take: take + 1,
+        // Só o que o card usa — nada de `context` (texto grande) ou campos
+        // financeiros/de contato que a listagem não mostra.
+        select: {
+          id: true,
+          name: true,
+          photoUrl: true,
+          status: true,
+          services: true,
+          contactInstagram: true,
+          whatsappGroupUrl: true,
+          driveUrl: true,
+          _count: { select: { demands: true } },
+        },
+      }),
+    ]);
 
-  const total = clients.length;
-  const ativos = clients.filter((client) => client.status === "ATIVO").length;
-  const comWhatsapp = clients.filter((client) => client.whatsappGroupUrl).length;
+  const hasMore = clients.length > take;
+  const page = hasMore ? clients.slice(0, take) : clients;
 
-  const cards: ClientCard[] = clients.map((client) => ({
+  const cards: ClientCard[] = page.map((client) => ({
     id: client.id,
     name: client.name,
     photoUrl: client.photoUrl,
@@ -65,7 +91,11 @@ export default async function ClientesPage() {
       </div>
 
       <div className="mt-6">
-        <ClientesClient clients={cards} />
+        <ClientesClient
+          clients={cards}
+          hasMore={hasMore}
+          nextTake={take + PAGE_SIZE}
+        />
       </div>
     </div>
   );

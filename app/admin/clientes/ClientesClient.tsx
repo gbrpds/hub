@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
@@ -23,10 +24,20 @@ export type ClientCard = {
 const fieldClass =
   "h-9 rounded border border-border bg-surface px-3 text-sm text-foreground transition-colors focus:border-accent focus:outline-none";
 
-export function ClientesClient({ clients }: { clients: ClientCard[] }) {
+export function ClientesClient({
+  clients,
+  hasMore,
+  nextTake,
+}: {
+  clients: ClientCard[];
+  hasMore: boolean;
+  nextTake: number;
+}) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [serviceFilter, setServiceFilter] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [loadingMore, startLoadMore] = useTransition();
 
   const allServices = useMemo(() => {
     const set = new Set<string>();
@@ -153,6 +164,22 @@ export function ClientesClient({ clients }: { clients: ClientCard[] }) {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {hasMore && (
+        <div className="flex justify-center pt-2">
+          <Button
+            variant="secondary"
+            disabled={loadingMore}
+            onClick={() =>
+              startLoadMore(() =>
+                router.push(`/admin/clientes?take=${nextTake}`, { scroll: false }),
+              )
+            }
+          >
+            {loadingMore ? "Carregando..." : "Carregar mais"}
+          </Button>
         </div>
       )}
 

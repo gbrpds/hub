@@ -1,6 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
+import { BLUR_DATA_URL } from "@/lib/media";
 
 export type DeliveryItem = {
   url: string;
@@ -26,12 +28,17 @@ export function DeliveryCarousel({ items }: { items: DeliveryItem[] }) {
     <div className="flex flex-col gap-2">
       <div className="relative flex items-center justify-center rounded border border-border bg-background">
         {current.kind === "image" ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={current.url}
-            alt={current.fileName ?? "entrega"}
-            className="max-h-[420px] w-full object-contain"
-          />
+          <div className="relative h-[420px] w-full">
+            <Image
+              src={current.url}
+              alt={current.fileName ?? "entrega"}
+              fill
+              sizes="(max-width: 1024px) 100vw, 66vw"
+              placeholder="blur"
+              blurDataURL={BLUR_DATA_URL}
+              className="object-contain"
+            />
+          </div>
         ) : current.kind === "video" ? (
           <video
             src={current.url}

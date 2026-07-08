@@ -46,6 +46,7 @@ async function getDashboardData() {
               dueDate: { gte: startOfToday, lt: startOfTomorrow },
             },
             orderBy: [{ priority: "asc" }, { createdAt: "asc" }],
+            select: { id: true, title: true, priority: true },
           })
         : Promise.resolve([]),
       prisma.demand.findMany({
@@ -53,14 +54,25 @@ async function getDashboardData() {
           dueDate: { lt: startOfToday },
           status: { not: "CONCLUIDO" },
         },
-        include: { client: { select: { name: true } } },
         orderBy: { dueDate: "asc" },
         take: 15,
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          dueDate: true,
+          client: { select: { name: true } },
+        },
       }),
       prisma.activity.findMany({
         orderBy: { createdAt: "desc" },
         take: 10,
-        include: { user: { select: { name: true, email: true } } },
+        select: {
+          id: true,
+          description: true,
+          createdAt: true,
+          user: { select: { name: true, email: true } },
+        },
       }),
       prisma.client.count({ where: { status: "ATIVO" } }),
       prisma.financeEntry.groupBy({

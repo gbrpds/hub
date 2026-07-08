@@ -10,8 +10,7 @@ export type PortalDemandCard = {
   id: string;
   title: string;
   status: DemandStatus;
-  previewUrl: string | null;
-  previewKind: "image" | "video" | "other" | null;
+  hasDelivery: boolean;
 };
 
 const FILTERS = [
@@ -74,18 +73,9 @@ export function DemandasGrid({ demands }: { demands: PortalDemandCard[] }) {
               className="flex flex-col overflow-hidden rounded border border-border bg-surface transition-colors hover:border-accent"
             >
               <div className="relative flex h-40 items-center justify-center bg-background">
-                {demand.previewKind === "image" && demand.previewUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={demand.previewUrl}
-                    alt={demand.title}
-                    className="h-full w-full object-cover"
-                  />
-                ) : demand.previewKind === "video" && demand.previewUrl ? (
-                  <video src={demand.previewUrl} className="h-full w-full object-cover" />
-                ) : (
-                  <span className="text-xs text-muted">Sem prévia ainda</span>
-                )}
+                <span className="text-xs text-muted">
+                  {demand.hasDelivery ? "Entrega disponível — toque para ver" : "Em andamento"}
+                </span>
                 <div className="absolute left-2 top-2">
                   <StatusPill status={demand.status} />
                 </div>

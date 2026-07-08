@@ -34,12 +34,15 @@ export default async function DemandDetailPage({
           orderBy: { createdAt: "desc" },
           include: { author: { select: { name: true, email: true } } },
         },
-        attachments: { orderBy: { createdAt: "asc" } },
+        attachments: {
+          orderBy: { createdAt: "asc" },
+          select: { id: true, url: true, fileName: true, type: true },
+        },
       },
     }),
     prisma.client.findMany({
       orderBy: { name: "asc" },
-      select: { id: true, name: true, photoUrl: true },
+      select: { id: true, name: true },
     }),
     prisma.user.findMany({
       orderBy: { name: "asc" },

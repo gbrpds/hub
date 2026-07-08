@@ -1,5 +1,4 @@
-"use client";
-
+// Só renderiza a tabela (sem estado/eventos) — não precisa ser client.
 import Link from "next/link";
 import { formatDate } from "@/lib/format";
 import { CONTENT_TYPE_LABEL, type DemandCard } from "@/lib/demand-meta";

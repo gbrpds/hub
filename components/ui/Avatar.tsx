@@ -1,4 +1,6 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { BLUR_DATA_URL } from "@/lib/media";
 
 export function Avatar({
   name,
@@ -13,10 +15,14 @@ export function Avatar({
 }) {
   if (photoUrl) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
+      <Image
         src={photoUrl}
         alt={name}
+        width={size}
+        height={size}
+        sizes={`${size}px`}
+        placeholder="blur"
+        blurDataURL={BLUR_DATA_URL}
         className={cn(
           "shrink-0 rounded-sm border border-border object-cover",
           className,

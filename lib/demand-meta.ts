@@ -68,7 +68,6 @@ export const CONTENT_TYPE_LABEL: Record<ContentType, string> = {
 export type DemandCard = {
   id: string;
   title: string;
-  description: string | null;
   status: DemandStatus;
   priority: Priority;
   contentType: ContentType | null;
@@ -78,5 +77,5 @@ export type DemandCard = {
   assignee: { id: string; name: string | null; email: string } | null;
 };
 
-export type ClientOption = { id: string; name: string; photoUrl: string | null };
+export type ClientOption = { id: string; name: string };
 export type UserOption = { id: string; name: string | null; email: string };

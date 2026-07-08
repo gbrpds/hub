@@ -17,13 +17,17 @@ export default async function CronogramaPage() {
   const clients = await prisma.client.findMany({
     where: { status: "ATIVO" },
     orderBy: { name: "asc" },
-    include: {
+    // Só o que os cards usam — evita trazer context, contatos e campos
+    // financeiros de todos os clientes.
+    select: {
+      id: true,
+      name: true,
+      photoUrl: true,
       demands: {
         select: {
           status: true,
           publishDate: true,
           dueDate: true,
-          updatedAt: true,
         },
       },
     },
