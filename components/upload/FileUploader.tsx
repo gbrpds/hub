@@ -75,11 +75,17 @@ export function FileUploader({
       return;
     }
 
+    // O Storage do Supabase espera multipart/form-data com o arquivo no
+    // campo de nome vazio ("") e um campo cacheControl — igual ao que o
+    // supabase-js faz internamente. NÃO definir content-type: o navegador
+    // seta o boundary do multipart automaticamente.
+    const form = new FormData();
+    form.append("cacheControl", "3600");
+    form.append("", file);
+
     const xhr = new XMLHttpRequest();
     update(id, { xhr });
     xhr.open("PUT", target.uploadUrl);
-    if (file.type) xhr.setRequestHeader("content-type", file.type);
-    xhr.setRequestHeader("x-upsert", "true");
 
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable) {
@@ -92,12 +98,13 @@ export function FileUploader({
         onUploaded({ url: target.publicUrl, name: file.name });
         setTimeout(() => remove(id), 700);
       } else {
+        console.error("Upload falhou:", xhr.status, xhr.responseText);
         update(id, { status: "error" });
       }
     };
     xhr.onerror = () => update(id, { status: "error" });
     xhr.onabort = () => remove(id);
-    xhr.send(file);
+    xhr.send(form);
   }
 
   function handleFiles(fileList: FileList | null) {

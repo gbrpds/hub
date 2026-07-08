@@ -72,9 +72,10 @@ export async function createUploadUrl(
     throw new Error(error?.message ?? "Falha ao gerar URL de upload.");
   }
 
-  const uploadUrl = `${SUPABASE_URL}/storage/v1/object/upload/sign/${BUCKET}/${data.path}?token=${data.token}`;
+  // data.signedUrl já é a URL completa de upload (com o token). O navegador
+  // faz o PUT direto nela.
   const publicUrl = supabase.storage.from(BUCKET).getPublicUrl(path).data
     .publicUrl;
 
-  return { uploadUrl, publicUrl };
+  return { uploadUrl: data.signedUrl, publicUrl };
 }

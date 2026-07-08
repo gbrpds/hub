@@ -28,7 +28,22 @@ export async function PUT(
   { params }: { params: Promise<{ path: string[] }> },
 ) {
   const { path: parts } = await params;
-  const buffer = Buffer.from(await req.arrayBuffer());
+
+  // O cliente envia multipart/form-data (igual ao Supabase): o arquivo vem
+  // no campo de nome vazio. Fora isso, aceita corpo cru como fallback.
+  let buffer: Buffer;
+  const contentType = req.headers.get("content-type") ?? "";
+  if (contentType.includes("multipart/form-data")) {
+    const form = await req.formData();
+    const file = form.get("");
+    if (!(file instanceof Blob)) {
+      return new Response("no file", { status: 400 });
+    }
+    buffer = Buffer.from(await file.arrayBuffer());
+  } else {
+    buffer = Buffer.from(await req.arrayBuffer());
+  }
+
   await mkdir(DIR, { recursive: true });
   await writeFile(path.join(DIR, keyFrom(parts)), buffer);
   return new Response(null, { status: 200 });
