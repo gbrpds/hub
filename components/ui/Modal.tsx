@@ -35,9 +35,9 @@ export function Modal({
   if (!open || typeof document === "undefined") return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-black/70"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -45,14 +45,16 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         className={cn(
-          "relative z-10 w-full max-w-md rounded border border-border bg-surface",
+          "relative z-10 w-full max-w-md rounded border border-border-strong bg-surface",
+          "shadow-[0_24px_60px_-20px_rgba(0,0,0,0.8)]",
+          "modal-pop",
           className,
         )}
       >
         {(title || description) && (
-          <div className="flex flex-col gap-1 border-b border-border p-4">
+          <div className="flex flex-col gap-1.5 border-b border-border p-6">
             {title && (
-              <h2 className="text-base font-bold tracking-tight text-foreground">
+              <h2 className="text-lg font-bold tracking-tight text-foreground">
                 {title}
               </h2>
             )}
@@ -61,7 +63,7 @@ export function Modal({
             )}
           </div>
         )}
-        <div className="p-4">{children}</div>
+        <div className="p-6">{children}</div>
       </div>
     </div>,
     document.body,

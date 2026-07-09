@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { DemandCard } from "@/lib/demand-meta";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { DemandasClient } from "./DemandasClient";
 
 // Sem isso o Next.js pode congelar a página como estática no build.
@@ -59,10 +60,13 @@ export default async function DemandasPage({
   }));
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold tracking-tight">Demandas</h1>
-      <p className="mt-2 text-muted">Kanban e lista das demandas do estúdio.</p>
-      <div className="mt-6">
+    <div className="flex flex-col gap-10">
+      <PageHeader
+        index="02"
+        title="Demandas"
+        description="Kanban e lista das demandas do estúdio."
+      />
+      <div>
         <DemandasClient
           demands={cards}
           clients={clients}

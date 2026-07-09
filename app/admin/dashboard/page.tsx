@@ -3,6 +3,7 @@ import { getCurrentAdminId } from "@/lib/current-user";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 // Sem isso o Next.js pode renderizar essa página como estática no build
 // (nenhum código aqui usa cookies/params), congelando os dados — "hoje",
@@ -103,12 +104,15 @@ export default async function AdminDashboardPage() {
   } = await getDashboardData();
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-      <p className="mt-2 text-muted">Área interna do Hub.</p>
+    <div className="flex flex-col gap-10">
+      <PageHeader
+        index="01"
+        title="Dashboard"
+        description="Visão geral do estúdio — o que precisa de você hoje."
+      />
 
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <Card glow>
           <CardHeader>
             <CardTitle>To-do de hoje</CardTitle>
           </CardHeader>
@@ -131,7 +135,7 @@ export default async function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card glow>
           <CardHeader>
             <CardTitle>
               Demandas em atraso

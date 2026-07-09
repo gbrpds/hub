@@ -2,16 +2,17 @@
 
 :root {
   --background: #0a0a0a;
-  --surface: #131313;
+  --surface: #121212;
   --surface-hover: #1a1a1a;
   --border: #262626;
+  --border-strong: #383838;
   --foreground: #f5f5f5;
   --muted: #a3a3a3;
-  --accent: #ff5c00;
+  --accent: #ff5a1f;
   --accent-foreground: #0a0a0a;
   --danger: #ef4444;
   --success: #22c55e;
-  --radius: 2px;
+  --radius: 3px;
 }
 
 @theme inline {
@@ -19,6 +20,7 @@
   --color-surface: var(--surface);
   --color-surface-hover: var(--surface-hover);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
@@ -26,7 +28,7 @@
   --color-danger: var(--danger);
   --color-success: var(--success);
   --radius-DEFAULT: var(--radius);
-  --radius-sm: 1px;
+  --radius-sm: 2px;
   --radius-md: var(--radius);
   --radius-lg: 4px;
   --font-sans: var(--font-geist-sans);
@@ -43,6 +45,18 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+/* Ruído sutil sobre o fundo — SVG inline (feTurbulence), leve e barato.
+   z-index -1 fica atrás do conteúdo sem afetar o empilhamento das páginas. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
 h1,
 h2,
 h3,
@@ -51,4 +65,44 @@ h5,
 h6 {
   font-weight: 700;
   letter-spacing: -0.02em;
+}
+
+/* Glow radial laranja sutil — usado atrás de heros/cards em destaque.
+   CSS puro (radial-gradient), sem imagens. */
+.page-glow {
+  background: radial-gradient(
+    55% 120% at 50% 0%,
+    rgba(255, 90, 31, 0.13),
+    transparent 62%
+  );
+}
+
+.card-glow {
+  background: radial-gradient(
+    80% 100% at 50% 0%,
+    rgba(255, 90, 31, 0.08),
+    transparent 70%
+  );
+}
+
+/* Entrada suave do modal — sem depender de plugin externo. */
+@keyframes modal-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-pop {
+  animation: modal-pop 0.18s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-pop {
+    animation: none;
+  }
 }
