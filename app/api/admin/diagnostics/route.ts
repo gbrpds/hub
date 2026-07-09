@@ -29,6 +29,22 @@ export async function GET() {
     EMAIL_SERVER_HOST: process.env.EMAIL_SERVER_HOST
       ? "configurado"
       : "faltando (magic link do CLIENT não vai funcionar)",
+    SUPABASE_URL: process.env.SUPABASE_URL
+      ? `configurado (host: ${(() => {
+          try {
+            return new URL(process.env.SUPABASE_URL!).host;
+          } catch {
+            return "VALOR INVÁLIDO — não é uma URL";
+          }
+        })()})`
+      : "FALTANDO (upload de arquivos não funciona)",
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY
+      ? `configurado (${process.env.SUPABASE_SERVICE_ROLE_KEY.length} caracteres)`
+      : "FALTANDO (upload de arquivos não funciona)",
+    SUPABASE_STORAGE_BUCKET: process.env.SUPABASE_STORAGE_BUCKET
+      ? `"${process.env.SUPABASE_STORAGE_BUCKET}"`
+      : 'não definido — usando "uploads" (padrão)',
+    VERCEL_ENV: process.env.VERCEL_ENV ?? "não detectado",
     VERCEL: process.env.VERCEL ? "rodando na Vercel" : "não detectado",
   };
 
