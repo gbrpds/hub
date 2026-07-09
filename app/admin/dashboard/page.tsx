@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentAdminId } from "@/lib/current-user";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { CountUp } from "@/components/motion/CountUp";
 
 // Sem isso o Next.js pode renderizar essa página como estática no build
 // (nenhum código aqui usa cookies/params), congelando os dados — "hoje",
@@ -206,18 +207,20 @@ export default async function AdminDashboardPage() {
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <p className="text-xs uppercase tracking-wide text-muted">Clientes ativos</p>
-                <p className="mt-1 text-xl font-bold text-foreground">{activeClients}</p>
+                <p className="mt-1 text-xl font-bold text-foreground">
+                  <CountUp value={activeClients} />
+                </p>
               </div>
               <div>
                 <p className="text-xs uppercase tracking-wide text-muted">Recebido no mês</p>
                 <p className="mt-1 text-xl font-bold text-foreground">
-                  {formatCurrency(totalRecebido)}
+                  <CountUp value={totalRecebido} format="currency" />
                 </p>
               </div>
               <div>
                 <p className="text-xs uppercase tracking-wide text-muted">Pendente no mês</p>
                 <p className="mt-1 text-xl font-bold text-accent">
-                  {formatCurrency(totalPendente)}
+                  <CountUp value={totalPendente} format="currency" />
                 </p>
               </div>
             </div>

@@ -1,5 +1,7 @@
-// Só renderiza a tabela (sem estado/eventos) — não precisa ser client.
+"use client";
+
 import Link from "next/link";
+import { motion } from "motion/react";
 import { formatDate } from "@/lib/format";
 import { CONTENT_TYPE_LABEL, type DemandCard } from "@/lib/demand-meta";
 import { Avatar, PriorityTag, StatusBadge } from "./parts";
@@ -23,9 +25,16 @@ export function ListView({ demands }: { demands: DemandCard[] }) {
           </tr>
         </thead>
         <tbody>
-          {demands.map((demand) => (
-            <tr
+          {demands.map((demand, index) => (
+            <motion.tr
               key={demand.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.28,
+                ease: [0.22, 1, 0.36, 1],
+                delay: Math.min(index * 0.03, 0.3),
+              }}
               className="border-b border-border last:border-0 hover:bg-surface"
             >
               <td className="px-3 py-2">
@@ -69,7 +78,7 @@ export function ListView({ demands }: { demands: DemandCard[] }) {
               <td className="px-3 py-2">
                 <StatusBadge status={demand.status} />
               </td>
-            </tr>
+            </motion.tr>
           ))}
         </tbody>
       </table>

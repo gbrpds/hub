@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type DragEvent } from "react";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/format";
 import {
@@ -23,6 +24,7 @@ export function KanbanView({
   const [dragOver, setDragOver] = useState<DemandStatus | null>(null);
 
   return (
+    <LayoutGroup>
     <div className="flex gap-4 overflow-x-auto pb-4">
       {STATUS_ORDER.map((status) => {
         const meta = STATUS_META[status];
@@ -61,54 +63,68 @@ export function KanbanView({
             </div>
 
             <div className="flex min-h-[80px] flex-col gap-2 p-2">
-              {columnDemands.map((demand) => (
-                <article
-                  key={demand.id}
-                  draggable
-                  onDragStart={(event) =>
-                    event.dataTransfer.setData("text/plain", demand.id)
-                  }
-                  className="cursor-grab rounded-sm border border-border bg-background p-3 active:cursor-grabbing"
-                >
-                  <Link
-                    href={`/admin/demandas/${demand.id}`}
-                    className="text-sm font-medium text-foreground hover:text-accent"
+              <AnimatePresence mode="popLayout" initial={false}>
+                {columnDemands.map((demand) => (
+                  <motion.article
+                    key={demand.id}
+                    layout
+                    layoutId={`demand-${demand.id}`}
+                    initial={{ opacity: 0, scale: 0.97 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.97 }}
+                    transition={{
+                      layout: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
+                      opacity: { duration: 0.18 },
+                      scale: { duration: 0.18 },
+                    }}
+                    draggable
+                    onDragStart={(event) =>
+                      (
+                        event as unknown as DragEvent
+                      ).dataTransfer.setData("text/plain", demand.id)
+                    }
+                    className="cursor-grab rounded-sm border border-border bg-background p-3 active:cursor-grabbing"
                   >
-                    {demand.title}
-                  </Link>
+                    <Link
+                      href={`/admin/demandas/${demand.id}`}
+                      className="text-sm font-medium text-foreground hover:text-accent"
+                    >
+                      {demand.title}
+                    </Link>
 
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <PriorityTag priority={demand.priority} />
-                    {demand.contentType && (
-                      <span className="rounded-sm border border-border px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted">
-                        {CONTENT_TYPE_LABEL[demand.contentType]}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="mt-2 flex items-center justify-between gap-2">
-                    <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted">
-                      {demand.client ? (
-                        <>
-                          <Avatar
-                            name={demand.client.name}
-                            photoUrl={demand.client.photoUrl}
-                            size={18}
-                          />
-                          <span className="truncate">{demand.client.name}</span>
-                        </>
-                      ) : (
-                        "Interno"
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <PriorityTag priority={demand.priority} />
+                      {demand.contentType && (
+                        <span className="rounded-sm border border-border px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted">
+                          {CONTENT_TYPE_LABEL[demand.contentType]}
+                        </span>
                       )}
-                    </span>
-                    {demand.dueDate && (
-                      <span className="shrink-0 text-xs text-muted">
-                        {formatDate(new Date(demand.dueDate))}
+                    </div>
+
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted">
+                        {demand.client ? (
+                          <>
+                            <Avatar
+                              name={demand.client.name}
+                              photoUrl={demand.client.photoUrl}
+                              size={18}
+                            />
+                            <span className="truncate">{demand.client.name}</span>
+                          </>
+                        ) : (
+                          "Interno"
+                        )}
                       </span>
-                    )}
-                  </div>
-                </article>
-              ))}
+                      {demand.dueDate && (
+                        <span className="shrink-0 text-xs text-muted">
+                          {formatDate(new Date(demand.dueDate))}
+                        </span>
+                      )}
+                    </div>
+                  </motion.article>
+                ))}
+              </AnimatePresence>
 
               {columnDemands.length === 0 && (
                 <p className="px-1 py-2 text-xs text-muted">—</p>
@@ -118,5 +134,6 @@ export function KanbanView({
         );
       })}
     </div>
+    </LayoutGroup>
   );
 }

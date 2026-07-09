@@ -2,6 +2,7 @@
 
 import { HTMLAttributes, ReactNode, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 
 export interface ModalProps {
@@ -32,40 +33,52 @@ export function Modal({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [open, onClose]);
 
-  if (!open || typeof document === "undefined") return null;
+  if (typeof document === "undefined") return null;
 
+  // AnimatePresence fica sempre montado para animar entrada E saída.
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        className={cn(
-          "relative z-10 w-full max-w-md rounded border border-border-strong bg-surface",
-          "shadow-[0_24px_60px_-20px_rgba(0,0,0,0.8)]",
-          "modal-pop",
-          className,
-        )}
-      >
-        {(title || description) && (
-          <div className="flex flex-col gap-1.5 border-b border-border p-6">
-            {title && (
-              <h2 className="text-lg font-bold tracking-tight text-foreground">
-                {title}
-              </h2>
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <motion.div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={onClose}
+            aria-hidden="true"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+          />
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            className={cn(
+              "relative z-10 w-full max-w-md rounded border border-border-strong bg-surface",
+              "shadow-[0_24px_60px_-20px_rgba(0,0,0,0.8)]",
+              className,
             )}
-            {description && (
-              <p className="text-sm text-muted">{description}</p>
+            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.98 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {(title || description) && (
+              <div className="flex flex-col gap-1.5 border-b border-border p-6">
+                {title && (
+                  <h2 className="text-lg font-bold tracking-tight text-foreground">
+                    {title}
+                  </h2>
+                )}
+                {description && (
+                  <p className="text-sm text-muted">{description}</p>
+                )}
+              </div>
             )}
-          </div>
-        )}
-        <div className="p-6">{children}</div>
-      </div>
-    </div>,
+            <div className="p-6">{children}</div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>,
     document.body,
   );
 }

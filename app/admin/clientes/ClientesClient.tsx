@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { StaggerContainer, StaggerItem } from "@/components/motion/Stagger";
 import { NewClientModal } from "./NewClientModal";
 
 export type ClientCard = {
@@ -90,11 +91,14 @@ export function ClientesClient({
       {filtered.length === 0 ? (
         <p className="text-sm text-muted">Nenhum cliente encontrado.</p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <StaggerContainer
+          key={`${search}|${serviceFilter}`}
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
           {filtered.map((client) => (
-            <div
+            <StaggerItem
               key={client.id}
-              className="flex flex-col gap-3 rounded border border-border bg-surface p-4"
+              className="flex flex-col gap-3 rounded border border-border bg-surface p-4 transition-colors hover:border-border-strong"
             >
               <div className="flex items-start gap-3">
                 <Avatar name={client.name} photoUrl={client.photoUrl} size={48} />
@@ -157,14 +161,14 @@ export function ClientesClient({
                 )}
                 <Link
                   href={`/admin/clientes/${client.id}`}
-                  className="ml-auto rounded-sm bg-accent px-2 py-1 text-xs font-semibold text-accent-foreground hover:opacity-90"
+                  className="ml-auto rounded-sm bg-gradient-accent px-2 py-1 text-xs font-semibold text-accent-foreground hover:brightness-105"
                 >
                   Abrir ficha
                 </Link>
               </div>
-            </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       )}
 
       {hasMore && (
