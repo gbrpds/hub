@@ -3,13 +3,14 @@ import { cn } from "@/lib/utils";
 
 const variantClasses = {
   primary:
-    "bg-accent text-accent-foreground hover:brightness-110 shadow-[0_0_0_0_rgba(255,90,31,0)] hover:shadow-[0_6px_20px_-6px_rgba(255,90,31,0.5)]",
+    "shine bg-gradient-accent text-accent-foreground shadow-[0_2px_10px_-3px_rgba(255,122,61,0.5)] hover:shadow-[0_10px_28px_-6px_rgba(255,122,61,0.7)] hover:brightness-105",
   secondary:
-    "bg-surface text-foreground border border-border hover:border-border-strong hover:bg-surface-hover",
+    "bg-surface text-foreground border border-border hover:border-accent/50 hover:bg-surface-hover hover:shadow-[0_6px_18px_-10px_rgba(255,122,61,0.4)]",
   outline:
-    "bg-transparent text-foreground border border-border hover:border-accent hover:text-accent",
-  ghost: "bg-transparent text-foreground hover:bg-surface-hover",
-  danger: "bg-danger text-white hover:brightness-110",
+    "bg-transparent text-foreground border border-border hover:border-accent hover:text-accent hover:shadow-[0_6px_18px_-10px_rgba(255,122,61,0.4)]",
+  ghost: "bg-transparent text-foreground hover:bg-surface-hover hover:text-accent",
+  danger:
+    "bg-danger text-white hover:brightness-110 shadow-[0_2px_10px_-3px_rgba(239,68,68,0.5)] hover:shadow-[0_10px_28px_-6px_rgba(239,68,68,0.6)]",
 } as const;
 
 const sizeClasses = {

@@ -2,17 +2,25 @@
 
 :root {
   --background: #0a0a0a;
-  --surface: #121212;
-  --surface-hover: #1a1a1a;
+  --surface: #131313;
+  --surface-hover: #1c1c1c;
   --border: #262626;
   --border-strong: #383838;
   --foreground: #f5f5f5;
   --muted: #a3a3a3;
-  --accent: #ff5a1f;
+
+  /* Laranja um pouco mais claro e quente, com tons para degradê. */
+  --accent: #ff7a3d;
+  --accent-light: #ffa05c;
+  --accent-dark: #f2600f;
   --accent-foreground: #0a0a0a;
+
   --danger: #ef4444;
   --success: #22c55e;
   --radius: 3px;
+
+  /* Degradê laranja reutilizável (botões, destaques). */
+  --gradient-accent: linear-gradient(135deg, var(--accent-light), var(--accent) 55%, var(--accent-dark));
 }
 
 @theme inline {
@@ -24,6 +32,8 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-accent-dark: var(--accent-dark);
   --color-accent-foreground: var(--accent-foreground);
   --color-danger: var(--danger);
   --color-success: var(--success);
@@ -45,16 +55,27 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
-/* Ruído sutil sobre o fundo — SVG inline (feTurbulence), leve e barato.
-   z-index -1 fica atrás do conteúdo sem afetar o empilhamento das páginas. */
+/* Fundo texturizado: ruído fino + vinheta radial quente muito sutil.
+   Duas camadas fixas, puramente CSS/SVG, sem custo de rede. */
 body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+body::after {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.03;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background:
+    radial-gradient(60% 50% at 50% -10%, rgba(255, 122, 61, 0.06), transparent 70%),
+    radial-gradient(40% 40% at 100% 100%, rgba(255, 122, 61, 0.04), transparent 70%);
 }
 
 h1,
@@ -67,12 +88,11 @@ h6 {
   letter-spacing: -0.02em;
 }
 
-/* Glow radial laranja sutil — usado atrás de heros/cards em destaque.
-   CSS puro (radial-gradient), sem imagens. */
+/* Glow radial laranja sutil — atrás de heros/cards em destaque. */
 .page-glow {
   background: radial-gradient(
     55% 120% at 50% 0%,
-    rgba(255, 90, 31, 0.13),
+    rgba(255, 122, 61, 0.16),
     transparent 62%
   );
 }
@@ -80,9 +100,56 @@ h6 {
 .card-glow {
   background: radial-gradient(
     80% 100% at 50% 0%,
-    rgba(255, 90, 31, 0.08),
+    rgba(255, 122, 61, 0.1),
     transparent 70%
   );
+}
+
+/* Texto com degradê laranja (títulos/números editoriais). */
+.text-gradient-accent {
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Superfície com degradê laranja (botões primários, chips ativos). */
+.bg-gradient-accent {
+  background-image: var(--gradient-accent);
+}
+
+/* Botão com brilho que atravessa no hover. */
+.shine {
+  position: relative;
+  overflow: hidden;
+}
+.shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 80%
+  );
+  transform: translateX(-120%);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+}
+.shine:hover::after {
+  transform: translateX(120%);
+}
+
+/* Borda com degradê laranta animado (cards em foco). */
+@keyframes border-flow {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* Entrada suave do modal — sem depender de plugin externo. */
@@ -101,8 +168,45 @@ h6 {
   animation: modal-pop 0.18s ease-out;
 }
 
+/* Fade + subida suave para blocos que entram na tela. */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rise-in {
+  animation: rise-in 0.4s ease-out both;
+}
+
+/* Pulso suave do glow (status/indicadores). */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    box-shadow: 0 0 0 0 rgba(255, 122, 61, 0.4);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 12px 2px rgba(255, 122, 61, 0.35);
+  }
+}
+
+.glow-pulse {
+  animation: glow-pulse 2.4s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .modal-pop {
+  .modal-pop,
+  .rise-in,
+  .glow-pulse,
+  .shine::after {
     animation: none;
+    transition: none;
   }
 }

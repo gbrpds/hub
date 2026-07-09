@@ -32,11 +32,11 @@ export function PageHeader({
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex flex-col gap-1.5">
           {index && (
-            <span className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-accent">
+            <span className="text-gradient-accent font-mono text-sm font-bold uppercase tracking-[0.25em]">
               {index}
             </span>
           )}
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+          <h1 className="rise-in text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
             {title}
           </h1>
           {description && (

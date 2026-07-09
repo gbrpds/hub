@@ -1,18 +1,9 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { SignOutButton } from "@/components/auth/SignOutButton";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
 
 const AUTH_GATE_ENABLED = process.env.AUTH_GATE_ENABLED === "true";
-
-const NAV_LINKS = [
-  { href: "/admin/dashboard", label: "Dashboard" },
-  { href: "/admin/demandas", label: "Demandas" },
-  { href: "/admin/cronograma", label: "Cronograma" },
-  { href: "/admin/clientes", label: "Clientes" },
-  { href: "/admin/financeiro", label: "Financeiro" },
-  { href: "/admin/todo", label: "To-do" },
-];
 
 export default async function AdminLayout({
   children,
@@ -30,35 +21,33 @@ export default async function AdminLayout({
 
   return (
     <div className="flex min-h-screen">
-      <aside className="flex w-60 shrink-0 flex-col justify-between border-r border-border bg-surface px-4 py-6">
-        <div className="flex flex-col gap-6">
-          <div className="text-lg font-bold tracking-tight text-foreground">
-            Hub <span className="text-accent">Admin</span>
+      <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col justify-between border-r border-border bg-surface/70 px-4 py-6 backdrop-blur-sm">
+        <div className="flex flex-col gap-8">
+          <div className="flex items-center gap-2.5 px-1">
+            <span className="flex h-8 w-8 items-center justify-center rounded bg-gradient-accent text-sm font-extrabold text-accent-foreground shadow-[0_4px_14px_-4px_rgba(255,122,61,0.7)]">
+              H
+            </span>
+            <span className="text-lg font-bold tracking-tight text-foreground">
+              Hub <span className="text-gradient-accent">Admin</span>
+            </span>
           </div>
-          <nav className="flex flex-col gap-1">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="px-2 py-1.5 text-sm text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+          <AdminSidebar />
         </div>
-        <div className="flex flex-col gap-2 text-sm text-muted">
+        <div className="flex flex-col gap-2 border-t border-border pt-4 text-sm text-muted">
           {session?.user ? (
             <>
-              <span>{session.user.email}</span>
+              <span className="truncate px-1">{session.user.email}</span>
               <SignOutButton />
             </>
           ) : (
-            <span>Login desativado (dev)</span>
+            <span className="flex items-center gap-2 px-1">
+              <span className="glow-pulse h-2 w-2 rounded-full bg-accent" />
+              Login desativado (dev)
+            </span>
           )}
         </div>
       </aside>
-      <main className="flex-1 px-8 py-6">{children}</main>
+      <main className="flex-1 px-8 py-8">{children}</main>
     </div>
   );
 }

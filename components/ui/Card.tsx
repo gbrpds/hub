@@ -10,10 +10,11 @@ export function Card({
   return (
     <div
       className={cn(
-        "relative rounded border border-border bg-surface",
-        "transition-all duration-200 ease-out",
-        "hover:border-border-strong hover:shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)]",
-        glow && "hover:border-accent/40",
+        "group/card relative rounded border border-border bg-surface",
+        "transition-all duration-300 ease-out",
+        "hover:-translate-y-0.5 hover:border-border-strong hover:shadow-[0_18px_40px_-18px_rgba(0,0,0,0.7)]",
+        glow &&
+          "hover:border-accent/40 hover:shadow-[0_18px_44px_-16px_rgba(255,122,61,0.28)]",
         className,
       )}
       {...props}
@@ -21,7 +22,7 @@ export function Card({
       {glow && (
         <div
           aria-hidden
-          className="card-glow pointer-events-none absolute inset-x-0 top-0 h-24 rounded"
+          className="card-glow pointer-events-none absolute inset-x-0 top-0 h-24 rounded opacity-70 transition-opacity duration-300 group-hover/card:opacity-100"
         />
       )}
       {children}
