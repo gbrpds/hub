@@ -61,28 +61,46 @@ model Client {
   // Texto livre para dar contexto sobre o cliente a ferramentas de IA.
   context String? @db.Text
 
-  contactPhone     String?
-  contactEmail     String?
-  contactWebsite   String?
-  contactInstagram String?
+  contactPhone   String?
+  contactEmail   String?
+  contactWebsite String?
+
+  // Um cliente pode ter mais de um @ do Instagram.
+  instagrams String[] @default([])
 
   contractStartDate DateTime?
-  monthlyValue      Decimal?  @db.Decimal(10, 2)
-  paymentDay        Int?
 
-  // Link do contrato (arquivo hospedado ou URL externa) e do Drive do cliente.
-  contractUrl      String?
-  driveUrl         String?
-  whatsappGroupUrl String?
+  // Contrato: PDF anexado (contractUrl) ou marcado como sem contrato.
+  contractUrl String?
+  noContract  Boolean @default(false)
+
+  driveUrl String?
 
   users          User[]
   demands        Demand[]
   financeEntries FinanceEntry[]
+  payments       Payment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([status])
+}
+
+// Um pagamento recorrente do cliente (valor + dia do mês). Um cliente pode
+// ter vários (ex: entrada + parcelas). O Financeiro soma todos como valor mensal.
+model Payment {
+  id       String  @id @default(cuid())
+  clientId String
+  client   Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  label    String?
+  value    Decimal @db.Decimal(10, 2)
+  dueDay   Int?
+  order    Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([clientId])
 }
 
 enum Priority {

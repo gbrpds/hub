@@ -67,12 +67,28 @@ export default async function FinanceiroPage({
   const start = new Date(year, month, 1);
   const next = new Date(year, month + 1, 1);
 
-  // Clientes ativos do mês.
+  // Clientes ativos do mês (com seus pagamentos).
   const activeClients = await prisma.client.findMany({
     where: { status: "ATIVO" },
     orderBy: { name: "asc" },
-    select: { id: true, name: true, monthlyValue: true, paymentDay: true },
+    select: {
+      id: true,
+      name: true,
+      payments: { select: { value: true, dueDay: true } },
+    },
   });
+
+  // Valor mensal = soma dos pagamentos; dia de referência = último dia entre eles.
+  const calc = new Map(
+    activeClients.map((client) => {
+      const value = client.payments.reduce((s, p) => s + Number(p.value), 0);
+      const day = client.payments.reduce<number | null>(
+        (acc, p) => (p.dueDay != null ? Math.max(acc ?? 0, p.dueDay) : acc),
+        null,
+      );
+      return [client.id, { value, day }];
+    }),
+  );
 
   // Auto-geração: garante um FinanceEntry PENDENTE por cliente ativo com
   // valor mensal, se ainda não existir um para este mês.
@@ -83,15 +99,13 @@ export default async function FinanceiroPage({
   const haveEntry = new Set(existing.map((entry) => entry.clientId));
   const toCreate = activeClients.filter(
     (client) =>
-      client.monthlyValue != null &&
-      Number(client.monthlyValue) > 0 &&
-      !haveEntry.has(client.id),
+      (calc.get(client.id)?.value ?? 0) > 0 && !haveEntry.has(client.id),
   );
   if (toCreate.length > 0) {
     await prisma.financeEntry.createMany({
       data: toCreate.map((client) => ({
         clientId: client.id,
-        value: client.monthlyValue!,
+        value: (calc.get(client.id)?.value ?? 0).toFixed(2),
         referenceMonth: start,
         status: "PENDENTE" as const,
       })),
@@ -106,7 +120,7 @@ export default async function FinanceiroPage({
   const entryByClient = new Map(entries.map((entry) => [entry.clientId, entry]));
 
   const totalEsperado = activeClients.reduce(
-    (sum, client) => sum + Number(client.monthlyValue ?? 0),
+    (sum, client) => sum + (calc.get(client.id)?.value ?? 0),
     0,
   );
   const totalRecebido = entries
@@ -131,7 +145,7 @@ export default async function FinanceiroPage({
 
   const overdueTotal = activeClients.reduce((sum, client) => {
     const entry = entryByClient.get(client.id);
-    if (entry && isOverdue(entry.status, client.paymentDay)) {
+    if (entry && isOverdue(entry.status, calc.get(client.id)?.day ?? null)) {
       return sum + Number(entry.value);
     }
     return sum;
@@ -250,9 +264,9 @@ export default async function FinanceiroPage({
               const entry = entryByClient.get(client.id);
               const value = entry
                 ? Number(entry.value)
-                : Number(client.monthlyValue ?? 0);
+                : calc.get(client.id)?.value ?? 0;
               const overdue = entry
-                ? isOverdue(entry.status, client.paymentDay)
+                ? isOverdue(entry.status, calc.get(client.id)?.day ?? null)
                 : false;
               return (
                 <tr
@@ -271,7 +285,7 @@ export default async function FinanceiroPage({
                     {value > 0 ? formatCurrency(value) : "—"}
                   </td>
                   <td className="px-3 py-2 text-muted">
-                    {client.paymentDay ?? "—"}
+                    {calc.get(client.id)?.day ?? "—"}
                   </td>
                   <td className="px-3 py-2">
                     {!entry ? (

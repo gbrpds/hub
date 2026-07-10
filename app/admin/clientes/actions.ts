@@ -17,7 +17,16 @@ function parseServices(value: FormDataEntryValue | null): string[] {
     .filter(Boolean);
 }
 
-function parseDecimal(value: FormDataEntryValue | string | null): string | null {
+function parseJsonArray<T>(value: FormDataEntryValue | null): T[] {
+  try {
+    const parsed = JSON.parse(String(value ?? "[]"));
+    return Array.isArray(parsed) ? (parsed as T[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function parseDecimal(value: string | null): string | null {
   const raw = String(value ?? "")
     .trim()
     .replace(/\./g, "")
@@ -27,7 +36,7 @@ function parseDecimal(value: FormDataEntryValue | string | null): string | null 
   return Number.isFinite(num) ? num.toFixed(2) : null;
 }
 
-function parseDay(value: FormDataEntryValue | string | null): number | null {
+function parseDay(value: string | number | null): number | null {
   const num = parseInt(String(value ?? ""), 10);
   if (Number.isNaN(num)) return null;
   return Math.min(Math.max(num, 1), 31);
@@ -40,10 +49,42 @@ function parseDate(value: FormDataEntryValue | string | null): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+type PaymentInput = { label?: string; value: string; dueDay?: string | number };
+
+function normalizeInstagrams(list: string[]): string[] {
+  return Array.from(
+    new Set(
+      list
+        .map((v) => v.trim().replace(/^@/, "").replace(/\/$/, ""))
+        .filter(Boolean),
+    ),
+  );
+}
+
+function paymentsData(list: PaymentInput[]) {
+  return list
+    .map((p, index) => {
+      const value = parseDecimal(p.value);
+      if (!value) return null;
+      return {
+        value,
+        dueDay: parseDay(p.dueDay ?? null),
+        label: p.label?.trim() || null,
+        order: index + 1,
+      };
+    })
+    .filter((p): p is NonNullable<typeof p> => p !== null);
+}
+
 export async function createClient(formData: FormData) {
   if (!(await canActAsAdmin())) return { ok: false as const, error: "Sem permissão." };
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return { ok: false as const, error: "Digite o nome do cliente." };
+
+  const instagrams = normalizeInstagrams(
+    parseJsonArray<string>(formData.get("instagrams")),
+  );
+  const payments = paymentsData(parseJsonArray<PaymentInput>(formData.get("payments")));
 
   await prisma.client.create({
     data: {
@@ -55,13 +96,12 @@ export async function createClient(formData: FormData) {
       contactPhone: str(formData.get("contactPhone")),
       contactEmail: str(formData.get("contactEmail")),
       contactWebsite: str(formData.get("contactWebsite")),
-      contactInstagram: str(formData.get("contactInstagram")),
+      instagrams,
       contractStartDate: parseDate(formData.get("contractStartDate")),
-      monthlyValue: parseDecimal(formData.get("monthlyValue")),
-      paymentDay: parseDay(formData.get("paymentDay")),
       contractUrl: str(formData.get("contractUrl")),
+      noContract: formData.get("noContract") === "true",
       driveUrl: str(formData.get("driveUrl")),
-      whatsappGroupUrl: str(formData.get("whatsappGroupUrl")),
+      payments: { create: payments },
     },
   });
 
@@ -100,17 +140,25 @@ export async function updateClientField(
     case "contactPhone":
     case "contactEmail":
     case "contactWebsite":
-    case "contactInstagram":
     case "contractUrl":
     case "driveUrl":
-    case "whatsappGroupUrl":
       data[field] = value.trim() || null;
       break;
-    case "monthlyValue":
-      data.monthlyValue = parseDecimal(value);
+    case "noContract":
+      data.noContract = value === "true";
+      if (value === "true") data.contractUrl = null;
       break;
-    case "paymentDay":
-      data.paymentDay = parseDay(value);
+    case "instagrams":
+      data.instagrams = normalizeInstagrams(
+        (() => {
+          try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed : [];
+          } catch {
+            return [];
+          }
+        })(),
+      );
       break;
     case "contractStartDate":
       data.contractStartDate = parseDate(value);
@@ -122,6 +170,30 @@ export async function updateClientField(
   await prisma.client.update({ where: { id }, data });
   revalidatePath(`/admin/clientes/${id}`);
   revalidatePath("/admin/clientes");
+}
+
+// Substitui todos os pagamentos do cliente pela nova lista.
+export async function updateClientPayments(
+  clientId: string,
+  payments: PaymentInput[],
+) {
+  if (!(await canActAsAdmin())) return;
+  const data = paymentsData(payments);
+  await prisma.$transaction([
+    prisma.payment.deleteMany({ where: { clientId } }),
+    prisma.payment.createMany({
+      data: data.map((p) => ({ ...p, clientId })),
+    }),
+  ]);
+  revalidatePath(`/admin/clientes/${clientId}`);
+  revalidatePath("/admin/financeiro");
+}
+
+export async function deleteClient(clientId: string) {
+  if (!(await canActAsAdmin())) return { ok: false as const };
+  await prisma.client.delete({ where: { id: clientId } });
+  revalidatePath("/admin/clientes");
+  return { ok: true as const };
 }
 
 // Dá ou revoga o acesso do cliente ao portal, criando ou removendo o
@@ -143,7 +215,6 @@ export async function toggleClientPortalAccess(clientId: string) {
     await prisma.user.delete({ where: { id: linked.id } });
   } else {
     if (!client.contactEmail) return;
-    // Não sobrescreve um usuário já existente com esse e-mail.
     const emailTaken = await prisma.user.findUnique({
       where: { email: client.contactEmail },
       select: { id: true },

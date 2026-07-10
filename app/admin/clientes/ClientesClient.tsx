@@ -1,18 +1,17 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { LinkChip, toHref, shortLabel } from "@/components/ui/LinkChip";
 import { StaggerContainer, StaggerItem } from "@/components/motion/Stagger";
 import {
-  ArrowRightIcon,
   FolderIcon,
   InstagramIcon,
-  WhatsappIcon,
+  UsersIcon,
 } from "@/components/ui/icons";
 import { NewClientModal } from "./NewClientModal";
 
@@ -22,8 +21,8 @@ export type ClientCard = {
   photoUrl: string | null;
   status: "ATIVO" | "INATIVO";
   services: string[];
-  contactInstagram: string | null;
-  whatsappGroupUrl: string | null;
+  instagrams: string[];
+  contactWebsite: string | null;
   driveUrl: string | null;
   demandCount: number;
 };
@@ -58,7 +57,9 @@ export function ClientesClient({
       if (serviceFilter && !client.services.includes(serviceFilter)) return false;
       if (term) {
         const inName = client.name.toLowerCase().includes(term);
-        const inInsta = (client.contactInstagram ?? "").toLowerCase().includes(term);
+        const inInsta = client.instagrams.some((h) =>
+          h.toLowerCase().includes(term),
+        );
         if (!inName && !inInsta) return false;
       }
       return true;
@@ -104,78 +105,82 @@ export function ClientesClient({
           {filtered.map((client) => (
             <StaggerItem
               key={client.id}
-              className="flex flex-col gap-3 rounded border border-border bg-surface p-4 transition-colors hover:border-border-strong"
+              className="group flex cursor-pointer flex-col gap-3 rounded border border-border bg-surface p-4 transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-[0_16px_36px_-18px_rgba(255,122,61,0.25)]"
             >
-              <div className="flex items-start gap-3">
-                <Avatar name={client.name} photoUrl={client.photoUrl} size={48} />
-                <div className="min-w-0 flex-1">
-                  <Link
-                    href={`/admin/clientes/${client.id}`}
-                    className="block truncate font-bold text-foreground hover:text-accent"
-                  >
-                    {client.name}
-                  </Link>
-                  {client.contactInstagram && (
-                    <p className="flex items-center gap-1 truncate text-xs text-muted">
-                      <InstagramIcon width={12} height={12} className="shrink-0" />
-                      {client.contactInstagram}
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => router.push(`/admin/clientes/${client.id}`)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    router.push(`/admin/clientes/${client.id}`);
+                  }
+                }}
+                className="flex flex-col gap-3 outline-none"
+              >
+                <div className="flex items-start gap-3">
+                  <Avatar name={client.name} photoUrl={client.photoUrl} size={48} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-bold text-foreground group-hover:text-accent">
+                      {client.name}
                     </p>
+                    <p className="text-xs text-muted">
+                      {client.demandCount}{" "}
+                      {client.demandCount === 1 ? "demanda" : "demandas"}
+                    </p>
+                  </div>
+                  <Badge variant={client.status === "ATIVO" ? "success" : "outline"}>
+                    {client.status === "ATIVO" ? "Ativo" : "Inativo"}
+                  </Badge>
+                </div>
+
+                {client.services.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {client.services.map((service) => (
+                      <span
+                        key={service}
+                        className="rounded-sm border border-border px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted"
+                      >
+                        {service}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Links reduzidos e clicáveis (não abrem a ficha) */}
+              {(client.instagrams.length > 0 ||
+                client.driveUrl ||
+                client.contactWebsite) && (
+                <div className="mt-auto flex flex-wrap gap-1.5">
+                  {client.instagrams.map((handle) => (
+                    <LinkChip
+                      key={handle}
+                      href={toHref("instagram", handle)}
+                      icon={<InstagramIcon width={13} height={13} />}
+                    >
+                      {shortLabel("instagram", handle)}
+                    </LinkChip>
+                  ))}
+                  {client.driveUrl && (
+                    <LinkChip
+                      href={toHref("url", client.driveUrl)}
+                      icon={<FolderIcon width={13} height={13} />}
+                    >
+                      Drive
+                    </LinkChip>
+                  )}
+                  {client.contactWebsite && (
+                    <LinkChip
+                      href={toHref("url", client.contactWebsite)}
+                      icon={<UsersIcon width={13} height={13} />}
+                    >
+                      {shortLabel("url", client.contactWebsite)}
+                    </LinkChip>
                   )}
                 </div>
-                <Badge variant={client.status === "ATIVO" ? "success" : "outline"}>
-                  {client.status === "ATIVO" ? "Ativo" : "Inativo"}
-                </Badge>
-              </div>
-
-              {client.services.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {client.services.map((service) => (
-                    <span
-                      key={service}
-                      className="rounded-sm border border-border px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted"
-                    >
-                      {service}
-                    </span>
-                  ))}
-                </div>
               )}
-
-              <p className="text-xs text-muted">
-                {client.demandCount}{" "}
-                {client.demandCount === 1 ? "demanda" : "demandas"}
-              </p>
-
-              <div className="mt-auto flex flex-wrap gap-2">
-                {client.whatsappGroupUrl && (
-                  <a
-                    href={client.whatsappGroupUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 rounded-sm border border-border px-2 py-1 text-xs text-foreground transition-colors hover:border-accent/50 hover:text-accent"
-                  >
-                    <WhatsappIcon width={13} height={13} />
-                    WhatsApp
-                  </a>
-                )}
-                {client.driveUrl && (
-                  <a
-                    href={client.driveUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 rounded-sm border border-border px-2 py-1 text-xs text-foreground transition-colors hover:border-accent/50 hover:text-accent"
-                  >
-                    <FolderIcon width={13} height={13} />
-                    Drive
-                  </a>
-                )}
-                <Link
-                  href={`/admin/clientes/${client.id}`}
-                  className="ml-auto flex items-center gap-1 rounded-sm bg-gradient-accent px-2.5 py-1 text-xs font-semibold text-accent-foreground transition-all hover:brightness-105"
-                >
-                  Abrir ficha
-                  <ArrowRightIcon width={13} height={13} />
-                </Link>
-              </div>
             </StaggerItem>
           ))}
         </StaggerContainer>

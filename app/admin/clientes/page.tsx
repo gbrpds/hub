@@ -2,10 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import {
+  InstagramIcon,
   SendIcon,
   UserCheckIcon,
   UsersIcon,
-  WhatsappIcon,
 } from "@/components/ui/icons";
 import { ClientesClient, type ClientCard } from "./ClientesClient";
 
@@ -26,11 +26,11 @@ export default async function ClientesPage({
   const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
   // Contadores do topo via count (independentes da paginação da lista).
-  const [total, ativos, comWhatsapp, deliveredThisMonth, clients] =
+  const [total, ativos, comInstagram, deliveredThisMonth, clients] =
     await Promise.all([
       prisma.client.count(),
       prisma.client.count({ where: { status: "ATIVO" } }),
-      prisma.client.count({ where: { whatsappGroupUrl: { not: null } } }),
+      prisma.client.count({ where: { instagrams: { isEmpty: false } } }),
       prisma.demand.findMany({
         where: {
           status: "CONCLUIDO",
@@ -51,8 +51,8 @@ export default async function ClientesPage({
           photoUrl: true,
           status: true,
           services: true,
-          contactInstagram: true,
-          whatsappGroupUrl: true,
+          instagrams: true,
+          contactWebsite: true,
           driveUrl: true,
           _count: { select: { demands: true } },
         },
@@ -68,8 +68,8 @@ export default async function ClientesPage({
     photoUrl: client.photoUrl,
     status: client.status,
     services: client.services,
-    contactInstagram: client.contactInstagram,
-    whatsappGroupUrl: client.whatsappGroupUrl,
+    instagrams: client.instagrams,
+    contactWebsite: client.contactWebsite,
     driveUrl: client.driveUrl,
     demandCount: client._count.demands,
   }));
@@ -100,9 +100,9 @@ export default async function ClientesPage({
           icon={<SendIcon />}
         />
         <StatCard
-          label="Com WhatsApp"
-          value={comWhatsapp}
-          icon={<WhatsappIcon />}
+          label="Com Instagram"
+          value={comInstagram}
+          icon={<InstagramIcon />}
         />
       </div>
 
