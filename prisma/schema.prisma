@@ -81,6 +81,8 @@ model Client {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([status])
 }
 
 enum Priority {
@@ -137,6 +139,8 @@ model Demand {
   @@index([clientId])
   @@index([assigneeId])
   @@index([status])
+  @@index([dueDate])
+  @@index([updatedAt])
 }
 
 model Subtask {

@@ -11,7 +11,10 @@ const nextConfig: NextConfig = {
     // e configure remotePatterns para ativar a otimização automática.
     unoptimized: true,
   },
+  // Tree-shaking mais agressivo dos imports nomeados dessas libs —
+  // reduz o JS enviado ao cliente (bundles menores = navegação mais rápida).
   experimental: {
+    optimizePackageImports: ["motion"],
     serverActions: {
       // Anexos são enviados como data URL (base64) via Server Action;
       // o cap real fica no cliente (~8MB por arquivo). Base64 infla ~33%,

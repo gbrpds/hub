@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
+import { RouteModal } from "@/components/modal/RouteModal";
 import { loadDemandDetail } from "../../[id]/load";
 import { DemandDetailBody } from "../../[id]/DemandDetailBody";
-import { DemandModalShell } from "./DemandModalShell";
 
 export const dynamic = "force-dynamic";
 
@@ -17,8 +17,12 @@ export default async function DemandModalPage({
   if (!data) notFound();
 
   return (
-    <DemandModalShell>
+    <RouteModal
+      title="Detalhe da demanda"
+      maxWidthClass="max-w-[1240px]"
+      footerNote="✓ Mudanças salvas automaticamente"
+    >
       <DemandDetailBody data={data} />
-    </DemandModalShell>
+    </RouteModal>
   );
 }

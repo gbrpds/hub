@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -6,7 +7,9 @@ const AUTH_GATE_ENABLED = process.env.AUTH_GATE_ENABLED === "true";
 // Enquanto AUTH_GATE_ENABLED não é "true" (ver proxy.ts), não há sessão
 // real — usa o primeiro ADMIN cadastrado como usuário atual, só pra
 // telas que precisam de um "dono" (ex: to-do list) continuarem úteis.
-export async function getCurrentAdminId() {
+// cache(): dedupa a busca dentro de um mesmo render (várias chamadas por
+// página viram uma só ida ao banco/sessão).
+export const getCurrentAdminId = cache(async () => {
   if (AUTH_GATE_ENABLED) {
     const session = await auth();
     return session?.user.role === "ADMIN" ? session.user.id : null;
@@ -19,12 +22,12 @@ export async function getCurrentAdminId() {
   });
 
   return admin?.id ?? null;
-}
+});
 
 // clientId do cliente logado (usado por todo o portal para filtrar dados).
 // Em dev (gate desligado) cai no primeiro cliente com usuário CLIENT
 // vinculado, ou no primeiro cliente cadastrado.
-export async function getCurrentClientId() {
+export const getCurrentClientId = cache(async () => {
   if (AUTH_GATE_ENABLED) {
     const session = await auth();
     return session?.user.role === "CLIENT" ? session.user.clientId : null;
@@ -42,10 +45,10 @@ export async function getCurrentClientId() {
     select: { id: true },
   });
   return anyClient?.id ?? null;
-}
+});
 
 // id do User CLIENT logado (para autoria de comentários no portal).
-export async function getCurrentClientUserId() {
+export const getCurrentClientUserId = cache(async () => {
   if (AUTH_GATE_ENABLED) {
     const session = await auth();
     return session?.user.role === "CLIENT" ? session.user.id : null;
@@ -57,4 +60,4 @@ export async function getCurrentClientUserId() {
     select: { id: true },
   });
   return user?.id ?? null;
-}
+});

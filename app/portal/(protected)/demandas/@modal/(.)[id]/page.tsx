@@ -1,12 +1,13 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { RouteModal } from "@/components/modal/RouteModal";
 import { getCurrentClientId } from "@/lib/current-user";
-import { loadPortalDemand } from "../load";
-import { PortalDemandBody } from "../PortalDemandBody";
+import { loadPortalDemand } from "../../load";
+import { PortalDemandBody } from "../../PortalDemandBody";
 
 export const dynamic = "force-dynamic";
 
-export default async function PortalDemandDetailPage({
+// Detalhe do conteúdo abre como popup sobre a lista "Meus projetos".
+export default async function PortalDemandModalPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -17,14 +18,8 @@ export default async function PortalDemandDetailPage({
   if (!data) notFound();
 
   return (
-    <div className="flex flex-col gap-6">
-      <Link
-        href="/portal/demandas"
-        className="text-sm text-muted transition-colors hover:text-foreground"
-      >
-        ← Voltar
-      </Link>
+    <RouteModal title="Detalhe do conteúdo" maxWidthClass="max-w-3xl">
       <PortalDemandBody data={data} />
-    </div>
+    </RouteModal>
   );
 }

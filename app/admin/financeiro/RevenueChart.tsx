@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { formatCurrency } from "@/lib/format";
 
-const ACCENT = "#ff5c00";
+const ACCENT = "#ff7a3d";
 
 export type RevenuePoint = { label: string; value: number };
 

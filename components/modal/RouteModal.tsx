@@ -3,11 +3,22 @@
 import { ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
+import { cn } from "@/lib/utils";
 
-// Chrome do modal (popup) do detalhe da demanda: overlay com blur, painel
-// animado, fecha no Escape / clique fora / botão. Fechar = voltar (router.back),
-// preservando a lista por baixo (rota interceptada).
-export function DemandModalShell({ children }: { children: ReactNode }) {
+// Modal genérico para rotas interceptadas (abre sobre a lista via soft-nav).
+// Fecha no Escape / clique fora / X / botão Fechar — sempre via router.back(),
+// preservando a página por baixo. Refresh/deep link cai na página inteira.
+export function RouteModal({
+  title,
+  children,
+  footerNote,
+  maxWidthClass = "max-w-5xl",
+}: {
+  title: string;
+  children: ReactNode;
+  footerNote?: string;
+  maxWidthClass?: string;
+}) {
   const router = useRouter();
 
   useEffect(() => {
@@ -35,11 +46,14 @@ export function DemandModalShell({ children }: { children: ReactNode }) {
         initial={{ opacity: 0, y: 14, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 my-auto w-full max-w-[1240px] rounded border border-border-strong bg-background shadow-[0_24px_80px_-20px_rgba(0,0,0,0.85)]"
+        className={cn(
+          "relative z-10 my-auto w-full rounded border border-border-strong bg-background shadow-[0_24px_80px_-20px_rgba(0,0,0,0.85)]",
+          maxWidthClass,
+        )}
       >
         <div className="flex items-center justify-between border-b border-border px-6 py-3">
           <span className="text-xs uppercase tracking-wide text-muted">
-            Detalhe da demanda
+            {title}
           </span>
           <button
             type="button"
@@ -56,7 +70,7 @@ export function DemandModalShell({ children }: { children: ReactNode }) {
         </div>
 
         <div className="flex items-center justify-end gap-3 border-t border-border px-6 py-3 text-xs text-muted">
-          <span>✓ Mudanças salvas automaticamente</span>
+          {footerNote && <span>{footerNote}</span>}
           <button
             type="button"
             onClick={() => router.back()}
