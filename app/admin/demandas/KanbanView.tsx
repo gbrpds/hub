@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useState, type DragEvent } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/format";
@@ -22,6 +22,7 @@ export function KanbanView({
   onMove: (id: string, status: DemandStatus) => void;
 }) {
   const [dragOver, setDragOver] = useState<DemandStatus | null>(null);
+  const router = useRouter();
 
   return (
     <LayoutGroup>
@@ -83,14 +84,20 @@ export function KanbanView({
                         event as unknown as DragEvent
                       ).dataTransfer.setData("text/plain", demand.id)
                     }
-                    className="cursor-grab rounded-sm border border-border bg-background p-3 active:cursor-grabbing"
+                    onClick={() => router.push(`/admin/demandas/${demand.id}`)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        router.push(`/admin/demandas/${demand.id}`);
+                      }
+                    }}
+                    className="cursor-pointer rounded-sm border border-border bg-background p-3 transition-colors hover:border-accent/50 active:cursor-grabbing"
                   >
-                    <Link
-                      href={`/admin/demandas/${demand.id}`}
-                      className="text-sm font-medium text-foreground hover:text-accent"
-                    >
+                    <span className="text-sm font-medium text-foreground">
                       {demand.title}
-                    </Link>
+                    </span>
 
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <PriorityTag priority={demand.priority} />
