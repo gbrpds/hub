@@ -6,7 +6,25 @@ import { canActAsAdmin } from "@/lib/guards";
 import { getCurrentAdminId } from "@/lib/current-user";
 import type { Priority } from "@/app/generated/prisma/client";
 
+const AUTH_GATE_ENABLED = process.env.AUTH_GATE_ENABLED === "true";
+
 const PRIORITIES = ["URGENTE", "ALTA", "MEDIA", "BAIXA"] as const;
+
+// Dono das tarefas. Se o login está desligado (preview) e ainda não existe
+// nenhum ADMIN, cria um placeholder — assim o To-do funciona mesmo sem
+// bootstrap de login.
+async function getOwnerId(): Promise<string | null> {
+  const id = await getCurrentAdminId();
+  if (id) return id;
+  if (AUTH_GATE_ENABLED) return null;
+  const admin = await prisma.user.upsert({
+    where: { email: "admin@local.hub" },
+    update: {},
+    create: { email: "admin@local.hub", role: "ADMIN", name: "Admin" },
+    select: { id: true },
+  });
+  return admin.id;
+}
 
 function parsePriority(value: string | null | undefined): Priority {
   return (PRIORITIES as readonly string[]).includes(String(value))
@@ -28,7 +46,7 @@ export async function quickAddTask(input: {
   dueDate?: string;
 }) {
   if (!(await canActAsAdmin())) return;
-  const ownerId = await getCurrentAdminId();
+  const ownerId = await getOwnerId();
   if (!ownerId) return;
   const title = input.title.trim();
   if (!title) return;
@@ -46,7 +64,7 @@ export async function quickAddTask(input: {
 
 export async function addSubtask(parentId: string, title: string) {
   if (!(await canActAsAdmin())) return;
-  const ownerId = await getCurrentAdminId();
+  const ownerId = await getOwnerId();
   if (!ownerId) return;
   const value = title.trim();
   if (!value) return;

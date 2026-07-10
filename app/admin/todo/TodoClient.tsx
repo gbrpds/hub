@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
@@ -58,6 +59,15 @@ export function TodoClient({ tasks }: { tasks: TodoTask[] }) {
   const [adding, setAdding] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [, startTransition] = useTransition();
+  const router = useRouter();
+
+  // Roda a server action e força o refresh da lista (que vem do servidor).
+  function run(fn: () => Promise<unknown>) {
+    startTransition(async () => {
+      await fn();
+      router.refresh();
+    });
+  }
 
   // Deriva a tarefa aberta; se ela some (excluída), o modal fecha sozinho.
   const open = tasks.find((t) => t.id === openId) ?? null;
@@ -69,7 +79,7 @@ export function TodoClient({ tasks }: { tasks: TodoTask[] }) {
       return;
     }
     setNewTitle("");
-    startTransition(() => quickAddTask({ title }));
+    run(() => quickAddTask({ title }));
   }
 
   return (
@@ -88,7 +98,7 @@ export function TodoClient({ tasks }: { tasks: TodoTask[] }) {
                   done={task.done}
                   color={meta.color}
                   onToggle={() =>
-                    startTransition(() => toggleTask(task.id, !task.done))
+                    run(() => toggleTask(task.id, !task.done))
                   }
                 />
               </div>
@@ -127,7 +137,7 @@ export function TodoClient({ tasks }: { tasks: TodoTask[] }) {
               )}
               <button
                 type="button"
-                onClick={() => startTransition(() => deleteTask(task.id))}
+                onClick={() => run(() => deleteTask(task.id))}
                 aria-label="Excluir"
                 className="mt-0.5 shrink-0 text-muted opacity-0 transition-opacity hover:text-danger group-hover:opacity-100"
               >
@@ -204,7 +214,15 @@ function TaskDetail({ task, onClose }: { task: TodoTask; onClose: () => void }) 
   const [description, setDescription] = useState(task.description ?? "");
   const [subInput, setSubInput] = useState("");
   const [, startTransition] = useTransition();
+  const router = useRouter();
   const meta = PRIORITY_META[task.priority];
+
+  function run(fn: () => Promise<unknown>) {
+    startTransition(async () => {
+      await fn();
+      router.refresh();
+    });
+  }
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -260,7 +278,7 @@ function TaskDetail({ task, onClose }: { task: TodoTask; onClose: () => void }) 
                   color={meta.color}
                   size={22}
                   onToggle={() =>
-                    startTransition(() => toggleTask(task.id, !task.done))
+                    run(() => toggleTask(task.id, !task.done))
                   }
                 />
               </div>
@@ -269,7 +287,7 @@ function TaskDetail({ task, onClose }: { task: TodoTask; onClose: () => void }) 
                 onChange={(e) => setTitle(e.target.value)}
                 onBlur={() => {
                   if (title.trim() && title !== task.title)
-                    startTransition(() =>
+                    run(() =>
                       updateTaskField(task.id, "title", title),
                     );
                 }}
@@ -285,7 +303,7 @@ function TaskDetail({ task, onClose }: { task: TodoTask; onClose: () => void }) 
               onChange={(e) => setDescription(e.target.value)}
               onBlur={() => {
                 if (description !== (task.description ?? ""))
-                  startTransition(() =>
+                  run(() =>
                     updateTaskField(task.id, "description", description),
                   );
               }}
@@ -303,7 +321,7 @@ function TaskDetail({ task, onClose }: { task: TodoTask; onClose: () => void }) 
                     color="#8a8a8a"
                     size={18}
                     onToggle={() =>
-                      startTransition(() => toggleTask(sub.id, !sub.done))
+                      run(() => toggleTask(sub.id, !sub.done))
                     }
                   />
                   <span
@@ -316,7 +334,7 @@ function TaskDetail({ task, onClose }: { task: TodoTask; onClose: () => void }) 
                   </span>
                   <button
                     type="button"
-                    onClick={() => startTransition(() => deleteTask(sub.id))}
+                    onClick={() => run(() => deleteTask(sub.id))}
                     className="text-muted opacity-0 transition-opacity hover:text-danger group-hover/sub:opacity-100"
                     aria-label="Excluir subtarefa"
                   >
@@ -329,7 +347,7 @@ function TaskDetail({ task, onClose }: { task: TodoTask; onClose: () => void }) 
                   const v = subInput.trim();
                   if (!v) return;
                   setSubInput("");
-                  startTransition(() => addSubtask(task.id, v));
+                  run(() => addSubtask(task.id, v));
                 }}
                 className="flex items-center gap-2 py-1"
               >
@@ -354,7 +372,7 @@ function TaskDetail({ task, onClose }: { task: TodoTask; onClose: () => void }) 
                 type="date"
                 defaultValue={task.dueDate ? task.dueDate.slice(0, 10) : ""}
                 onChange={(e) =>
-                  startTransition(() =>
+                  run(() =>
                     updateTaskField(task.id, "dueDate", e.target.value),
                   )
                 }
@@ -375,7 +393,7 @@ function TaskDetail({ task, onClose }: { task: TodoTask; onClose: () => void }) 
                       key={p}
                       type="button"
                       onClick={() =>
-                        startTransition(() =>
+                        run(() =>
                           updateTaskField(task.id, "priority", p),
                         )
                       }
@@ -402,7 +420,7 @@ function TaskDetail({ task, onClose }: { task: TodoTask; onClose: () => void }) 
 
             <button
               type="button"
-              onClick={() => startTransition(() => deleteTask(task.id))}
+              onClick={() => run(() => deleteTask(task.id))}
               className="mt-auto flex items-center gap-2 text-sm text-muted transition-colors hover:text-danger"
             >
               🗑 Excluir tarefa
