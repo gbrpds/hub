@@ -207,53 +207,68 @@ export function CronogramaClient({
       </div>
 
       {view === "month" ? (
-        <div className="overflow-x-auto">
-          <div className="grid min-w-[720px] grid-cols-7 gap-px border border-border bg-border">
-            {WEEKDAYS.map((weekday) => (
+        <div className="grid grid-cols-7 gap-px border border-border bg-border">
+          {WEEKDAYS.map((weekday) => (
+            <div
+              key={weekday}
+              className="bg-surface py-1.5 text-center text-[10px] font-semibold uppercase tracking-wide text-muted sm:text-xs"
+            >
+              {/* No celular só a inicial do dia da semana. */}
+              <span className="sm:hidden">{weekday.charAt(0)}</span>
+              <span className="hidden sm:inline">{weekday}</span>
+            </div>
+          ))}
+          {cells.map((day, index) => {
+            const key = day ? `${monthPrefix}-${pad(day)}` : null;
+            const dayDemands = key ? byDay.get(key) ?? [] : [];
+            return (
               <div
-                key={weekday}
-                className="bg-surface px-2 py-1.5 text-center text-xs font-semibold uppercase tracking-wide text-muted"
+                key={index}
+                className={cn(
+                  "min-h-[64px] bg-background p-1 sm:min-h-[96px]",
+                  key === todayKey && "ring-1 ring-inset ring-accent",
+                )}
               >
-                {weekday}
+                {day && (
+                  <>
+                    <div className="mb-1 text-xs text-muted sm:px-1">{day}</div>
+                    {/* Celular: bolinhas coloridas clicáveis. */}
+                    <div className="flex flex-wrap gap-1 sm:hidden">
+                      {dayDemands.map((demand) => (
+                        <Link
+                          key={demand.id}
+                          href={`${hrefBase}/${demand.id}`}
+                          aria-label={demand.title}
+                          className="h-2 w-2 rounded-full"
+                          style={{
+                            backgroundColor: STATUS_META[demand.status].color,
+                          }}
+                        />
+                      ))}
+                    </div>
+                    {/* Desktop: chips com título. */}
+                    <div className="hidden flex-col gap-1 sm:flex">
+                      {dayDemands.map((demand) => (
+                        <Link
+                          key={demand.id}
+                          href={`${hrefBase}/${demand.id}`}
+                          className="flex items-center gap-1 rounded-sm border border-border bg-surface px-1.5 py-1 text-[11px] text-foreground hover:border-accent"
+                        >
+                          <span
+                            className="h-1.5 w-1.5 shrink-0 rounded-[1px]"
+                            style={{
+                              backgroundColor: STATUS_META[demand.status].color,
+                            }}
+                          />
+                          <span className="truncate">{demand.title}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
-            ))}
-            {cells.map((day, index) => {
-              const key = day ? `${monthPrefix}-${pad(day)}` : null;
-              const dayDemands = key ? byDay.get(key) ?? [] : [];
-              return (
-                <div
-                  key={index}
-                  className={cn(
-                    "min-h-[96px] bg-background p-1",
-                    key === todayKey && "ring-1 ring-inset ring-accent",
-                  )}
-                >
-                  {day && (
-                    <>
-                      <div className="mb-1 px-1 text-xs text-muted">{day}</div>
-                      <div className="flex flex-col gap-1">
-                        {dayDemands.map((demand) => (
-                          <Link
-                            key={demand.id}
-                            href={`${hrefBase}/${demand.id}`}
-                            className="flex items-center gap-1 rounded-sm border border-border bg-surface px-1.5 py-1 text-[11px] text-foreground hover:border-accent"
-                          >
-                            <span
-                              className="h-1.5 w-1.5 shrink-0 rounded-[1px]"
-                              style={{
-                                backgroundColor: STATUS_META[demand.status].color,
-                              }}
-                            />
-                            <span className="truncate">{demand.title}</span>
-                          </Link>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+            );
+          })}
         </div>
       ) : (
         <div className="flex flex-col gap-2">
