@@ -1,21 +1,17 @@
 import { prisma } from "@/lib/prisma";
-import { Card, CardContent } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { StatCard } from "@/components/ui/StatCard";
+import {
+  SendIcon,
+  UserCheckIcon,
+  UsersIcon,
+  WhatsappIcon,
+} from "@/components/ui/icons";
 import { ClientesClient, type ClientCard } from "./ClientesClient";
 
 export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 30;
-
-function SummaryCard({ label, value }: { label: string; value: number }) {
-  return (
-    <Card>
-      <CardContent>
-        <p className="text-xs uppercase tracking-wide text-muted">{label}</p>
-        <p className="mt-1 text-2xl font-bold text-foreground">{value}</p>
-      </CardContent>
-    </Card>
-  );
-}
 
 export default async function ClientesPage({
   searchParams,
@@ -79,18 +75,38 @@ export default async function ClientesPage({
   }));
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold tracking-tight">Clientes</h1>
-      <p className="mt-2 text-muted">Sua base de clientes.</p>
+    <div className="flex flex-col gap-10">
+      <PageHeader
+        index="04"
+        title="Clientes"
+        description="Sua base de clientes."
+      />
 
-      <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <SummaryCard label="Total de clientes" value={total} />
-        <SummaryCard label="Ativos" value={ativos} />
-        <SummaryCard label="Entregues no mês" value={deliveredThisMonth.length} />
-        <SummaryCard label="Com WhatsApp" value={comWhatsapp} />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard
+          label="Total de clientes"
+          value={total}
+          icon={<UsersIcon />}
+        />
+        <StatCard
+          label="Ativos"
+          value={ativos}
+          icon={<UserCheckIcon />}
+          accent
+        />
+        <StatCard
+          label="Entregues no mês"
+          value={deliveredThisMonth.length}
+          icon={<SendIcon />}
+        />
+        <StatCard
+          label="Com WhatsApp"
+          value={comWhatsapp}
+          icon={<WhatsappIcon />}
+        />
       </div>
 
-      <div className="mt-6">
+      <div>
         <ClientesClient
           clients={cards}
           hasMore={hasMore}

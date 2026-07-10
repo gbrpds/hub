@@ -8,6 +8,12 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { StaggerContainer, StaggerItem } from "@/components/motion/Stagger";
+import {
+  ArrowRightIcon,
+  FolderIcon,
+  InstagramIcon,
+  WhatsappIcon,
+} from "@/components/ui/icons";
 import { NewClientModal } from "./NewClientModal";
 
 export type ClientCard = {
@@ -110,7 +116,8 @@ export function ClientesClient({
                     {client.name}
                   </Link>
                   {client.contactInstagram && (
-                    <p className="truncate text-xs text-muted">
+                    <p className="flex items-center gap-1 truncate text-xs text-muted">
+                      <InstagramIcon width={12} height={12} className="shrink-0" />
                       {client.contactInstagram}
                     </p>
                   )}
@@ -144,8 +151,9 @@ export function ClientesClient({
                     href={client.whatsappGroupUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="rounded-sm border border-border px-2 py-1 text-xs text-foreground transition-colors hover:bg-surface-hover"
+                    className="flex items-center gap-1.5 rounded-sm border border-border px-2 py-1 text-xs text-foreground transition-colors hover:border-accent/50 hover:text-accent"
                   >
+                    <WhatsappIcon width={13} height={13} />
                     WhatsApp
                   </a>
                 )}
@@ -154,16 +162,18 @@ export function ClientesClient({
                     href={client.driveUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="rounded-sm border border-border px-2 py-1 text-xs text-foreground transition-colors hover:bg-surface-hover"
+                    className="flex items-center gap-1.5 rounded-sm border border-border px-2 py-1 text-xs text-foreground transition-colors hover:border-accent/50 hover:text-accent"
                   >
+                    <FolderIcon width={13} height={13} />
                     Drive
                   </a>
                 )}
                 <Link
                   href={`/admin/clientes/${client.id}`}
-                  className="ml-auto rounded-sm bg-gradient-accent px-2 py-1 text-xs font-semibold text-accent-foreground hover:brightness-105"
+                  className="ml-auto flex items-center gap-1 rounded-sm bg-gradient-accent px-2.5 py-1 text-xs font-semibold text-accent-foreground transition-all hover:brightness-105"
                 >
                   Abrir ficha
+                  <ArrowRightIcon width={13} height={13} />
                 </Link>
               </div>
             </StaggerItem>

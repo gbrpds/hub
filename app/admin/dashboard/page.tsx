@@ -4,7 +4,15 @@ import { formatDate } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { CountUp } from "@/components/motion/CountUp";
+import { StatCard } from "@/components/ui/StatCard";
+import {
+  ActivityIcon,
+  AlertIcon,
+  ChecklistIcon,
+  ClockIcon,
+  UsersIcon,
+  WalletIcon,
+} from "@/components/ui/icons";
 
 // Sem isso o Next.js pode renderizar essa página como estática no build
 // (nenhum código aqui usa cookies/params), congelando os dados — "hoje",
@@ -112,10 +120,36 @@ export default async function AdminDashboardPage() {
         description="Visão geral do estúdio — o que precisa de você hoje."
       />
 
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatCard
+          label="Clientes ativos"
+          value={activeClients}
+          icon={<UsersIcon />}
+        />
+        <StatCard
+          label="Recebido no mês"
+          value={totalRecebido}
+          format="currency"
+          icon={<WalletIcon />}
+        />
+        <StatCard
+          label="Pendente no mês"
+          value={totalPendente}
+          format="currency"
+          icon={<ClockIcon />}
+          accent
+        />
+      </div>
+
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <Card glow>
           <CardHeader>
-            <CardTitle>To-do de hoje</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-accent">
+                <ChecklistIcon />
+              </span>
+              To-do de hoje
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {todayTasks.length === 0 ? (
@@ -138,10 +172,13 @@ export default async function AdminDashboardPage() {
 
         <Card glow>
           <CardHeader>
-            <CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <span className={overdueDemands.length > 0 ? "text-danger" : "text-muted"}>
+                <AlertIcon />
+              </span>
               Demandas em atraso
               {overdueDemands.length > 0 && (
-                <Badge variant="danger" className="ml-2">
+                <Badge variant="danger" className="ml-1">
                   {overdueDemands.length}
                 </Badge>
               )}
@@ -176,54 +213,39 @@ export default async function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Atividade recente</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-accent">
+                <ActivityIcon />
+              </span>
+              Atividade recente
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {recentActivity.length === 0 ? (
               <p className="text-sm text-muted">Nenhuma atividade registrada ainda.</p>
             ) : (
-              <ul className="flex flex-col gap-3">
+              <ul className="flex flex-col">
                 {recentActivity.map((activity) => (
-                  <li key={activity.id} className="text-sm">
-                    <p className="text-foreground">{activity.description}</p>
-                    <p className="mt-0.5 text-xs text-muted">
-                      {activity.user?.name ?? activity.user?.email ?? "Sistema"} ·{" "}
-                      {formatDate(activity.createdAt)}
-                    </p>
+                  <li
+                    key={activity.id}
+                    className="flex gap-3 border-b border-border py-3 text-sm first:pt-0 last:border-0 last:pb-0"
+                  >
+                    <span className="mt-0.5 shrink-0 text-muted">
+                      <ActivityIcon width={14} height={14} />
+                    </span>
+                    <div>
+                      <p className="text-foreground">{activity.description}</p>
+                      <p className="mt-0.5 text-xs text-muted">
+                        {activity.user?.name ?? activity.user?.email ?? "Sistema"} ·{" "}
+                        {formatDate(activity.createdAt)}
+                      </p>
+                    </div>
                   </li>
                 ))}
               </ul>
             )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Resumo</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <p className="text-xs uppercase tracking-wide text-muted">Clientes ativos</p>
-                <p className="mt-1 text-xl font-bold text-foreground">
-                  <CountUp value={activeClients} />
-                </p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-muted">Recebido no mês</p>
-                <p className="mt-1 text-xl font-bold text-foreground">
-                  <CountUp value={totalRecebido} format="currency" />
-                </p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-muted">Pendente no mês</p>
-                <p className="mt-1 text-xl font-bold text-accent">
-                  <CountUp value={totalPendente} format="currency" />
-                </p>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
