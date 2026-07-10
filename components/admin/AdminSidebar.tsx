@@ -9,6 +9,7 @@ import {
   CronogramaIcon,
   DashboardIcon,
   DemandasIcon,
+  EstudioIcon,
   FinanceiroIcon,
   TodoIcon,
 } from "./nav-icons";
@@ -32,6 +33,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/dashboard", label: "Dashboard", icon: DashboardIcon },
       { href: "/admin/demandas", label: "Demandas", icon: DemandasIcon },
       { href: "/admin/cronograma", label: "Cronograma", icon: CronogramaIcon },
+      { href: "/admin/estudio", label: "Estúdio IA", icon: EstudioIcon },
       { href: "/admin/todo", label: "To-do", icon: TodoIcon },
     ],
   },

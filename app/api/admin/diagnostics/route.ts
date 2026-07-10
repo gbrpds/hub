@@ -44,6 +44,9 @@ export async function GET() {
     SUPABASE_STORAGE_BUCKET: process.env.SUPABASE_STORAGE_BUCKET
       ? `"${process.env.SUPABASE_STORAGE_BUCKET}"`
       : 'não definido — usando "uploads" (padrão)',
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY
+      ? `configurado (${process.env.ANTHROPIC_API_KEY.length} caracteres)`
+      : "faltando (Estúdio de Conteúdo IA não funciona)",
     VERCEL_ENV: process.env.VERCEL_ENV ?? "não detectado",
     VERCEL: process.env.VERCEL ? "rodando na Vercel" : "não detectado",
   };

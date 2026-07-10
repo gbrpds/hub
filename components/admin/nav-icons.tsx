@@ -72,3 +72,12 @@ export function TodoIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function EstudioIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
+      <path d="M12 7.5 13.3 11 17 12l-3.7 1L12 16.5 10.7 13 7 12l3.7-1z" />
+    </svg>
+  );
+}

@@ -222,3 +222,20 @@ export function ImageIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function SparklesIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
+      <path d="M12 8.5 13 11l2.5 1-2.5 1-1 2.5-1-2.5L8.5 12 11 11z" />
+    </svg>
+  );
+}
+
+export function TrashIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" />
+    </svg>
+  );
+}

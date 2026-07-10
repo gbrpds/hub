@@ -39,6 +39,8 @@ model User {
   comments        Comment[]
   tasks           Task[]
   activities      Activity[]
+  agentConfig     AgentConfig?
+  contentChats    ContentChat[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -80,6 +82,7 @@ model Client {
   demands        Demand[]
   financeEntries FinanceEntry[]
   payments       Payment[]
+  contentChats   ContentChat[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -280,6 +283,59 @@ model Activity {
 
   @@index([userId])
   @@index([createdAt])
+}
+
+// Configuração global do agente de conteúdo ("cérebro da marca"):
+// a metodologia de criação escrita uma vez e aplicada a todos os clientes.
+// Uma linha por ADMIN dono.
+model AgentConfig {
+  id           String @id @default(cuid())
+  ownerId      String @unique
+  owner        User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  instructions String @db.Text @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+}
+
+// Uma conversa com o agente de conteúdo, normalmente ancorada num cliente
+// (o agente puxa o context/serviços/demandas dele como base de conhecimento).
+model ContentChat {
+  id      String  @id @default(cuid())
+  title   String  @default("Nova conversa")
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  messages ContentMessage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+  @@index([clientId])
+  @@index([updatedAt])
+}
+
+model ContentMessage {
+  id      String   @id @default(cuid())
+  role    ChatRole
+  content String   @db.Text
+
+  chatId String
+  chat   ContentChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([chatId])
 }
 
 model Account {
