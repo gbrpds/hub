@@ -90,6 +90,9 @@ export function ListView({ demands }: { demands: DemandCard[] }) {
                       onClick={() =>
                         router.push(`/admin/demandas/${demand.id}`)
                       }
+                      onMouseEnter={() =>
+                        router.prefetch(`/admin/demandas/${demand.id}`)
+                      }
                       onKeyDown={(event) => {
                         if (event.key === "Enter" || event.key === " ") {
                           event.preventDefault();

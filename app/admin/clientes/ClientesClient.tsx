@@ -112,6 +112,9 @@ export function ClientesClient({
                 role="button"
                 tabIndex={0}
                 onClick={() => router.push(`/admin/clientes/${client.id}`)}
+                onMouseEnter={() =>
+                  router.prefetch(`/admin/clientes/${client.id}`)
+                }
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();

@@ -85,6 +85,9 @@ export function KanbanView({
                       ).dataTransfer.setData("text/plain", demand.id)
                     }
                     onClick={() => router.push(`/admin/demandas/${demand.id}`)}
+                    onMouseEnter={() =>
+                      router.prefetch(`/admin/demandas/${demand.id}`)
+                    }
                     role="button"
                     tabIndex={0}
                     onKeyDown={(event) => {
