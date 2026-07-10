@@ -18,8 +18,8 @@ export function Comments({
 
   return (
     <section>
-      <h2 className="mb-3 text-sm font-bold tracking-tight text-foreground">
-        Comentários <span className="text-muted">({comments.length})</span>
+      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">
+        Atividade <span className="text-muted/70">({comments.length})</span>
       </h2>
 
       <ul className="flex flex-col gap-3">

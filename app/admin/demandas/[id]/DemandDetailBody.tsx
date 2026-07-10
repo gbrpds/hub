@@ -45,26 +45,24 @@ export function DemandDetailBody({ data }: { data: DemandDetailData }) {
         </h1>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[248px_minmax(0,1fr)_320px]">
-        {/* Esquerda: subtarefas + propriedades + aprovação */}
-        <aside className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[240px_minmax(0,1fr)_340px]">
+        {/* Esquerda: só subtarefas (estilo ClickUp) */}
+        <aside className="flex flex-col gap-4 lg:border-r lg:border-border lg:pr-6">
           <Subtasks demandId={detail.id} subtasks={subtasks} />
-          <div className="rounded border border-border bg-surface p-5">
-            <InlineFields
-              key={`${detail.status}-${detail.assigneeId}-${detail.priority}-${detail.clientId}-${detail.dueDate}-${detail.publishDate}`}
-              demand={detail}
-              clients={clients}
-              users={users}
-            />
-          </div>
+        </aside>
+
+        {/* Centro: ação, propriedades, descrição/legenda e anexos */}
+        <div className="flex min-w-0 flex-col gap-6">
           <ApprovalButton
             demandId={detail.id}
             disabled={detail.status === "APROVACAO"}
           />
-        </aside>
-
-        {/* Centro: descrição/legenda + anexos */}
-        <div className="flex min-w-0 flex-col gap-8">
+          <InlineFields
+            key={`${detail.status}-${detail.assigneeId}-${detail.priority}-${detail.clientId}-${detail.dueDate}-${detail.publishDate}`}
+            demand={detail}
+            clients={clients}
+            users={users}
+          />
           <TextFields demand={detail} />
           <Attachments
             demandId={detail.id}

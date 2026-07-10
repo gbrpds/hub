@@ -24,7 +24,7 @@ export function TextFields({ demand }: { demand: DetailDemand }) {
   return (
     <div className="flex flex-col gap-6">
       <section>
-        <h2 className="mb-2 text-sm font-bold tracking-tight text-foreground">
+        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
           Descrição
         </h2>
         <textarea
@@ -39,7 +39,7 @@ export function TextFields({ demand }: { demand: DetailDemand }) {
 
       <section>
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-bold tracking-tight text-foreground">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">
             Legenda
           </h2>
           <span

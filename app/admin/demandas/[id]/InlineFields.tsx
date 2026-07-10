@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { ReactNode, useTransition } from "react";
 import { cn } from "@/lib/utils";
 import {
   STATUS_ORDER,
@@ -10,12 +10,31 @@ import {
   type ClientOption,
   type UserOption,
 } from "@/lib/demand-meta";
+import {
+  CalendarIcon,
+  FlagIcon,
+  FolderIcon,
+  SendIcon,
+  UsersIcon,
+} from "@/components/ui/icons";
 import { updateDemandField, updateDemandStatus } from "../actions";
 import type { DetailDemand } from "./types";
 
-const fieldClass =
-  "h-9 w-full rounded border border-border bg-surface px-2 text-sm text-foreground transition-colors focus:border-accent focus:outline-none";
-const labelClass = "text-xs font-semibold uppercase tracking-wide text-muted";
+// Controle "invisível" que só ganha borda no hover/focus, estilo ClickUp.
+const controlClass =
+  "w-full rounded-sm border border-transparent bg-transparent px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-surface-hover focus:border-accent focus:bg-surface focus:outline-none";
+
+function Row({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
+  return (
+    <div className="grid grid-cols-[120px_minmax(0,1fr)] items-center gap-2 px-3 py-1.5">
+      <span className="flex items-center gap-2 text-xs font-medium text-muted">
+        <span className="text-muted/70">{icon}</span>
+        {label}
+      </span>
+      {children}
+    </div>
+  );
+}
 
 export function InlineFields({
   demand,
@@ -33,12 +52,16 @@ export function InlineFields({
   }
 
   return (
-    <div className={cn("flex flex-col gap-4", pending && "opacity-70")}>
-      <label className="flex flex-col gap-1.5">
-        <span className={labelClass}>Status</span>
+    <div
+      className={cn(
+        "divide-y divide-border rounded border border-border",
+        pending && "opacity-70",
+      )}
+    >
+      <Row icon={<span className="h-2.5 w-2.5 rounded-[1px]" style={{ backgroundColor: STATUS_META[demand.status].color }} />} label="Status">
         <select
           defaultValue={demand.status}
-          className={fieldClass}
+          className={controlClass}
           onChange={(event) =>
             startTransition(() => updateDemandStatus(demand.id, event.target.value))
           }
@@ -49,13 +72,12 @@ export function InlineFields({
             </option>
           ))}
         </select>
-      </label>
+      </Row>
 
-      <label className="flex flex-col gap-1.5">
-        <span className={labelClass}>Responsável</span>
+      <Row icon={<UsersIcon width={14} height={14} />} label="Responsável">
         <select
           defaultValue={demand.assigneeId ?? ""}
-          className={fieldClass}
+          className={controlClass}
           onChange={(event) => setField("assigneeId", event.target.value)}
         >
           <option value="">Sem responsável</option>
@@ -65,13 +87,12 @@ export function InlineFields({
             </option>
           ))}
         </select>
-      </label>
+      </Row>
 
-      <label className="flex flex-col gap-1.5">
-        <span className={labelClass}>Prioridade</span>
+      <Row icon={<FlagIcon width={14} height={14} />} label="Prioridade">
         <select
           defaultValue={demand.priority}
-          className={fieldClass}
+          className={controlClass}
           onChange={(event) => setField("priority", event.target.value)}
         >
           {PRIORITY_ORDER.map((priority) => (
@@ -80,13 +101,12 @@ export function InlineFields({
             </option>
           ))}
         </select>
-      </label>
+      </Row>
 
-      <label className="flex flex-col gap-1.5">
-        <span className={labelClass}>Cliente</span>
+      <Row icon={<FolderIcon width={14} height={14} />} label="Cliente">
         <select
           defaultValue={demand.clientId ?? ""}
-          className={fieldClass}
+          className={controlClass}
           onChange={(event) => setField("clientId", event.target.value)}
         >
           <option value="">Interno (sem cliente)</option>
@@ -96,27 +116,25 @@ export function InlineFields({
             </option>
           ))}
         </select>
-      </label>
+      </Row>
 
-      <label className="flex flex-col gap-1.5">
-        <span className={labelClass}>Data de entrega</span>
+      <Row icon={<CalendarIcon width={14} height={14} />} label="Entrega">
         <input
           type="date"
           defaultValue={demand.dueDate ? demand.dueDate.slice(0, 10) : ""}
-          className={fieldClass}
+          className={controlClass}
           onChange={(event) => setField("dueDate", event.target.value)}
         />
-      </label>
+      </Row>
 
-      <label className="flex flex-col gap-1.5">
-        <span className={labelClass}>Data de publicação</span>
+      <Row icon={<SendIcon width={14} height={14} />} label="Publicação">
         <input
           type="date"
           defaultValue={demand.publishDate ? demand.publishDate.slice(0, 10) : ""}
-          className={fieldClass}
+          className={controlClass}
           onChange={(event) => setField("publishDate", event.target.value)}
         />
-      </label>
+      </Row>
     </div>
   );
 }
