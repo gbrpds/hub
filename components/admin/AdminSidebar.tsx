@@ -32,6 +32,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/dashboard", label: "Dashboard", icon: DashboardIcon },
       { href: "/admin/demandas", label: "Demandas", icon: DemandasIcon },
       { href: "/admin/cronograma", label: "Cronograma", icon: CronogramaIcon },
+      { href: "/admin/todo", label: "To-do", icon: TodoIcon },
     ],
   },
   {
@@ -39,7 +40,6 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/admin/clientes", label: "Clientes", icon: ClientesIcon },
       { href: "/admin/financeiro", label: "Financeiro", icon: FinanceiroIcon },
-      { href: "/admin/todo", label: "To-do", icon: TodoIcon },
     ],
   },
 ];

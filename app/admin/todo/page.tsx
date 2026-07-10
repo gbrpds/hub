@@ -2,9 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentAdminId } from "@/lib/current-user";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { TodoClient } from "./TodoClient";
+import type { TodoTask } from "./todo-meta";
 
-// Mesmo motivo do /admin/dashboard: sem isso o Next.js pode congelar
-// a lista como estática no build.
 export const dynamic = "force-dynamic";
 
 export default async function TodoPage() {
@@ -12,21 +11,46 @@ export default async function TodoPage() {
 
   const tasks = ownerId
     ? await prisma.task.findMany({
-        where: { ownerId },
-        orderBy: [{ priority: "asc" }, { dueDate: { sort: "asc", nulls: "last" } }],
+        where: { ownerId, parentId: null },
+        orderBy: [
+          { done: "asc" },
+          { priority: "asc" },
+          { dueDate: { sort: "asc", nulls: "last" } },
+          { createdAt: "asc" },
+        ],
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          done: true,
+          dueDate: true,
+          priority: true,
+          subtasks: {
+            orderBy: { createdAt: "asc" },
+            select: { id: true, title: true, done: true },
+          },
+        },
       })
     : [];
+
+  const data: TodoTask[] = tasks.map((task) => ({
+    id: task.id,
+    title: task.title,
+    description: task.description,
+    done: task.done,
+    dueDate: task.dueDate ? task.dueDate.toISOString() : null,
+    priority: task.priority,
+    subtasks: task.subtasks,
+  }));
 
   return (
     <div className="flex flex-col gap-10">
       <PageHeader
         index="06"
         title="To-do"
-        description="Sua lista de tarefas pessoais."
+        description="Suas tarefas pessoais."
       />
-      <div>
-        <TodoClient tasks={tasks} />
-      </div>
+      <TodoClient tasks={data} />
     </div>
   );
 }

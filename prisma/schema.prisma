@@ -216,19 +216,26 @@ model Attachment {
 
 // To-do list pessoal do usuário, sem relação com cliente ou demanda.
 model Task {
-  id       String    @id @default(cuid())
-  title    String
-  done     Boolean   @default(false)
-  dueDate  DateTime?
-  priority Priority  @default(MEDIA)
+  id          String    @id @default(cuid())
+  title       String
+  description String?   @db.Text
+  done        Boolean   @default(false)
+  dueDate     DateTime?
+  priority    Priority  @default(MEDIA)
 
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  // Subtarefas: auto-relação (uma tarefa pode ter subtarefas).
+  parentId String?
+  parent   Task?   @relation("TaskSubtasks", fields: [parentId], references: [id], onDelete: Cascade)
+  subtasks Task[]  @relation("TaskSubtasks")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([ownerId])
+  @@index([parentId])
 }
 
 enum FinanceStatus {
