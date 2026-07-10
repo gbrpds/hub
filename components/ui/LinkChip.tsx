@@ -1,30 +1,14 @@
+"use client";
+
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-// Normaliza um valor para href clicável.
-export function toHref(kind: "instagram" | "url" | "phone", value: string) {
-  const v = value.trim();
-  if (kind === "instagram") {
-    const handle = v.replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/\/$/, "");
-    return `https://instagram.com/${handle}`;
-  }
-  if (kind === "phone") return `tel:${v.replace(/[^0-9+]/g, "")}`;
-  return /^https?:\/\//i.test(v) ? v : `https://${v}`;
-}
-
-// Rótulo curto/reduzido do link (ex.: @usuario, domínio).
-export function shortLabel(kind: "instagram" | "url" | "phone", value: string) {
-  const v = value.trim();
-  if (kind === "instagram") return `@${v.replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/\/$/, "")}`;
-  if (kind === "phone") return v;
-  try {
-    return new URL(/^https?:\/\//i.test(v) ? v : `https://${v}`).host.replace(/^www\./, "");
-  } catch {
-    return v;
-  }
-}
+// Re-exporta os helpers puros para quem já importava daqui.
+export { toHref, shortLabel } from "@/lib/links";
 
 // Chip clicável compacto (ícone + rótulo curto) para redes e links.
+// stopPropagation evita abrir a ficha quando o chip está dentro de um card
+// clicável.
 export function LinkChip({
   href,
   icon,

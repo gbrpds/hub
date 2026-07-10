@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { LinkChip, toHref, shortLabel } from "@/components/ui/LinkChip";
+import { LinkChip } from "@/components/ui/LinkChip";
+import { toHref, shortLabel } from "@/lib/links";
 import { StaggerContainer, StaggerItem } from "@/components/motion/Stagger";
 import {
   FolderIcon,

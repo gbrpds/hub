@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { Badge } from "@/components/ui/Badge";
-import { LinkChip, toHref, shortLabel } from "@/components/ui/LinkChip";
+import { LinkChip } from "@/components/ui/LinkChip";
+import { toHref, shortLabel } from "@/lib/links";
 import { FolderIcon, InstagramIcon } from "@/components/ui/icons";
 import { StatusBadge } from "../../demandas/parts";
 import {
