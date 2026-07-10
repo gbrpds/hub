@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
@@ -67,60 +68,84 @@ export default async function FinanceiroPage({
   const start = new Date(year, month, 1);
   const next = new Date(year, month + 1, 1);
 
-  // Clientes ativos do mês (com seus pagamentos).
+  // Clientes ativos com seus pagamentos.
   const activeClients = await prisma.client.findMany({
     where: { status: "ATIVO" },
     orderBy: { name: "asc" },
     select: {
       id: true,
       name: true,
-      payments: { select: { value: true, dueDay: true } },
+      payments: {
+        orderBy: { order: "asc" },
+        select: { id: true, value: true, dueDay: true, label: true, order: true },
+      },
     },
   });
 
-  // Valor mensal = soma dos pagamentos; dia de referência = último dia entre eles.
-  const calc = new Map(
-    activeClients.map((client) => {
-      const value = client.payments.reduce((s, p) => s + Number(p.value), 0);
-      const day = client.payments.reduce<number | null>(
-        (acc, p) => (p.dueDay != null ? Math.max(acc ?? 0, p.dueDay) : acc),
-        null,
-      );
-      return [client.id, { value, day }];
-    }),
-  );
-
-  // Auto-geração: garante um FinanceEntry PENDENTE por cliente ativo com
-  // valor mensal, se ainda não existir um para este mês.
+  // Auto-geração: UM FinanceEntry por pagamento por mês.
   const existing = await prisma.financeEntry.findMany({
     where: { referenceMonth: { gte: start, lt: next } },
-    select: { clientId: true },
+    select: { id: true, clientId: true, paymentId: true, status: true },
   });
-  const haveEntry = new Set(existing.map((entry) => entry.clientId));
-  const toCreate = activeClients.filter(
-    (client) =>
-      (calc.get(client.id)?.value ?? 0) > 0 && !haveEntry.has(client.id),
+  const havePayment = new Set(
+    existing.filter((e) => e.paymentId).map((e) => e.paymentId),
   );
-  if (toCreate.length > 0) {
-    await prisma.financeEntry.createMany({
-      data: toCreate.map((client) => ({
+
+  const toCreate = activeClients.flatMap((client) =>
+    client.payments
+      .filter((p) => Number(p.value) > 0 && !havePayment.has(p.id))
+      .map((p) => ({
         clientId: client.id,
-        value: (calc.get(client.id)?.value ?? 0).toFixed(2),
+        paymentId: p.id,
+        value: p.value,
+        dueDay: p.dueDay,
+        label: p.label?.trim() || `Pagamento ${p.order}`,
         referenceMonth: start,
         status: "PENDENTE" as const,
       })),
-    });
+  );
+  if (toCreate.length > 0) {
+    await prisma.financeEntry.createMany({ data: toCreate });
   }
 
-  // Lançamentos do mês (após a auto-geração).
+  // Remove placeholders antigos (lançamento somado, sem pagamento) PENDENTES
+  // de clientes que agora têm pagamentos separados — pra não duplicar.
+  const clientsWithPayments = new Set(
+    activeClients.filter((c) => c.payments.length > 0).map((c) => c.id),
+  );
+  const stale = existing
+    .filter(
+      (e) =>
+        e.paymentId === null &&
+        e.status === "PENDENTE" &&
+        clientsWithPayments.has(e.clientId),
+    )
+    .map((e) => e.id);
+  if (stale.length > 0) {
+    await prisma.financeEntry.deleteMany({ where: { id: { in: stale } } });
+  }
+
+  // Lançamentos do mês (após a auto-geração), um por pagamento.
   const entries = await prisma.financeEntry.findMany({
     where: { referenceMonth: { gte: start, lt: next } },
-    select: { id: true, value: true, status: true, clientId: true },
+    select: {
+      id: true,
+      value: true,
+      status: true,
+      label: true,
+      dueDay: true,
+      client: { select: { id: true, name: true } },
+    },
   });
-  const entryByClient = new Map(entries.map((entry) => [entry.clientId, entry]));
+  entries.sort(
+    (a, b) =>
+      a.client.name.localeCompare(b.client.name) ||
+      (a.label ?? "").localeCompare(b.label ?? ""),
+  );
 
   const totalEsperado = activeClients.reduce(
-    (sum, client) => sum + (calc.get(client.id)?.value ?? 0),
+    (sum, client) =>
+      sum + client.payments.reduce((s, p) => s + Number(p.value), 0),
     0,
   );
   const totalRecebido = entries
@@ -133,8 +158,7 @@ export default async function FinanceiroPage({
   const isPast =
     year < now.getFullYear() ||
     (year === now.getFullYear() && month < now.getMonth());
-  const isCurrent =
-    year === now.getFullYear() && month === now.getMonth();
+  const isCurrent = year === now.getFullYear() && month === now.getMonth();
 
   function isOverdue(status: string, paymentDay: number | null) {
     if (status !== "PENDENTE") return false;
@@ -143,13 +167,11 @@ export default async function FinanceiroPage({
     return false;
   }
 
-  const overdueTotal = activeClients.reduce((sum, client) => {
-    const entry = entryByClient.get(client.id);
-    if (entry && isOverdue(entry.status, calc.get(client.id)?.day ?? null)) {
-      return sum + Number(entry.value);
-    }
-    return sum;
-  }, 0);
+  const overdueTotal = entries.reduce(
+    (sum, entry) =>
+      isOverdue(entry.status, entry.dueDay) ? sum + Number(entry.value) : sum,
+    0,
+  );
 
   // Gráfico: receita paga nos 6 meses até o mês selecionado.
   const chartStart = new Date(year, month - 5, 1);
@@ -253,6 +275,7 @@ export default async function FinanceiroPage({
           <thead>
             <tr className="border-b border-border bg-surface text-left text-xs uppercase tracking-wide text-muted">
               <th className="px-3 py-2 font-semibold">Cliente</th>
+              <th className="px-3 py-2 font-semibold">Pagamento</th>
               <th className="px-3 py-2 font-semibold">Valor</th>
               <th className="px-3 py-2 font-semibold">Dia pgto.</th>
               <th className="px-3 py-2 font-semibold">Status</th>
@@ -260,59 +283,63 @@ export default async function FinanceiroPage({
             </tr>
           </thead>
           <tbody>
-            {activeClients.map((client) => {
-              const entry = entryByClient.get(client.id);
-              const value = entry
-                ? Number(entry.value)
-                : calc.get(client.id)?.value ?? 0;
-              const overdue = entry
-                ? isOverdue(entry.status, calc.get(client.id)?.day ?? null)
-                : false;
+            {entries.map((entry, index) => {
+              const overdue = isOverdue(entry.status, entry.dueDay);
+              // Mostra o nome do cliente só na primeira linha do grupo.
+              const firstOfGroup =
+                index === 0 ||
+                entries[index - 1].client.id !== entry.client.id;
               return (
                 <tr
-                  key={client.id}
-                  className="border-b border-border last:border-0 hover:bg-surface"
+                  key={entry.id}
+                  className={cn(
+                    "border-b border-border last:border-0 hover:bg-surface",
+                    !firstOfGroup && "border-t-0",
+                  )}
                 >
                   <td className="px-3 py-2">
-                    <Link
-                      href={`/admin/clientes/${client.id}`}
-                      className="text-foreground hover:text-accent"
-                    >
-                      {client.name}
-                    </Link>
+                    {firstOfGroup && (
+                      <Link
+                        href={`/admin/clientes/${entry.client.id}`}
+                        className="font-medium text-foreground hover:text-accent"
+                      >
+                        {entry.client.name}
+                      </Link>
+                    )}
                   </td>
+                  <td className="px-3 py-2 text-muted">{entry.label ?? "—"}</td>
                   <td className="px-3 py-2 text-foreground">
-                    {value > 0 ? formatCurrency(value) : "—"}
+                    {formatCurrency(Number(entry.value))}
                   </td>
-                  <td className="px-3 py-2 text-muted">
-                    {calc.get(client.id)?.day ?? "—"}
-                  </td>
+                  <td className="px-3 py-2 text-muted">{entry.dueDay ?? "—"}</td>
                   <td className="px-3 py-2">
-                    {!entry ? (
-                      <span className="text-muted">—</span>
-                    ) : entry.status === "PAGO" ? (
+                    {entry.status === "PAGO" ? (
                       <span className="text-success">Pago</span>
                     ) : (
-                      <span className={overdue ? "font-semibold text-danger" : "text-accent"}>
+                      <span
+                        className={
+                          overdue
+                            ? "font-semibold text-danger"
+                            : "text-accent"
+                        }
+                      >
                         {overdue ? "Atrasado" : "Pendente"}
                       </span>
                     )}
                   </td>
                   <td className="px-3 py-2">
-                    {entry && (
-                      <PayButton
-                        entryId={entry.id}
-                        paid={entry.status === "PAGO"}
-                      />
-                    )}
+                    <PayButton
+                      entryId={entry.id}
+                      paid={entry.status === "PAGO"}
+                    />
                   </td>
                 </tr>
               );
             })}
-            {activeClients.length === 0 && (
+            {entries.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-3 py-4 text-center text-muted">
-                  Nenhum cliente ativo.
+                <td colSpan={6} className="px-3 py-4 text-center text-muted">
+                  Nenhum pagamento previsto neste mês.
                 </td>
               </tr>
             )}

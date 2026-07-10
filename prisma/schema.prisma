@@ -98,6 +98,8 @@ model Payment {
   dueDay   Int?
   order    Int     @default(0)
 
+  financeEntries FinanceEntry[]
+
   createdAt DateTime @default(now())
 
   @@index([clientId])
@@ -245,10 +247,18 @@ model FinanceEntry {
   clientId String
   client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
+  // Cada lançamento corresponde a um pagamento do cliente (quando aplicável).
+  // label guarda o nome/dia do pagamento mesmo que ele seja removido depois.
+  paymentId String?
+  payment   Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  label     String?
+  dueDay    Int?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([clientId])
+  @@index([paymentId])
 }
 
 // Feed de atividade recente do dashboard.
