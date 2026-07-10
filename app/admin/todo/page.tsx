@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentAdminId } from "@/lib/current-user";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { TodoClient } from "./TodoClient";
 
 // Mesmo motivo do /admin/dashboard: sem isso o Next.js pode congelar
@@ -17,10 +18,13 @@ export default async function TodoPage() {
     : [];
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold tracking-tight">To-do</h1>
-      <p className="mt-2 text-muted">Sua lista de tarefas pessoais.</p>
-      <div className="mt-6">
+    <div className="flex flex-col gap-10">
+      <PageHeader
+        index="06"
+        title="To-do"
+        description="Sua lista de tarefas pessoais."
+      />
+      <div>
         <TodoClient tasks={tasks} />
       </div>
     </div>

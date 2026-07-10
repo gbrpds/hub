@@ -3,6 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/format";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { StaggerContainer, StaggerItem } from "@/components/motion/Stagger";
+import {
+  ArrowRightIcon,
+  CalendarIcon,
+  TargetIcon,
+} from "@/components/ui/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -73,18 +80,21 @@ export default async function CronogramaPage() {
   });
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold tracking-tight">Cronograma</h1>
-      <p className="mt-2 text-muted">Escolha um cliente para ver o calendário.</p>
+    <div className="flex flex-col gap-10">
+      <PageHeader
+        index="03"
+        title="Cronograma"
+        description="Escolha um cliente para ver o calendário."
+      />
 
       {cards.length === 0 ? (
-        <p className="mt-6 text-sm text-muted">Nenhum cliente ativo.</p>
+        <p className="text-sm text-muted">Nenhum cliente ativo.</p>
       ) : (
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <StaggerContainer className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {cards.map((card) => (
-            <div
+            <StaggerItem
               key={card.id}
-              className="flex flex-col gap-3 rounded border border-border bg-surface p-4"
+              className="flex flex-col gap-4 rounded border border-border bg-surface p-6 transition-colors hover:border-border-strong"
             >
               <div className="flex items-center gap-3">
                 <Avatar name={card.name} photoUrl={card.photoUrl} size={44} />
@@ -100,20 +110,30 @@ export default async function CronogramaPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted">
-                    Publicações no mês
-                  </p>
-                  <p className="font-bold text-foreground">{card.monthCount}</p>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded border border-border bg-surface-hover text-muted">
+                    <CalendarIcon width={16} height={16} />
+                  </span>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wide text-muted">
+                      No mês
+                    </p>
+                    <p className="font-bold text-foreground">{card.monthCount}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted">
-                    % aprovado
-                  </p>
-                  <p className="font-bold text-foreground">
-                    {card.decided > 0 ? `${card.approvalRate}%` : "—"}
-                  </p>
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded border border-accent/25 bg-accent/10 text-accent">
+                    <TargetIcon width={16} height={16} />
+                  </span>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wide text-muted">
+                      Aprovado
+                    </p>
+                    <p className="font-bold text-foreground">
+                      {card.decided > 0 ? `${card.approvalRate}%` : "—"}
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -124,13 +144,14 @@ export default async function CronogramaPage() {
 
               <Link
                 href={`/admin/cronograma/${card.id}`}
-                className="mt-auto rounded-sm bg-accent px-3 py-2 text-center text-sm font-semibold text-accent-foreground hover:opacity-90"
+                className="mt-auto flex items-center justify-center gap-1.5 rounded-sm bg-gradient-accent px-3 py-2 text-center text-sm font-semibold text-accent-foreground transition-all hover:brightness-105"
               >
                 Abrir cronograma
+                <ArrowRightIcon width={15} height={15} />
               </Link>
-            </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       )}
     </div>
   );

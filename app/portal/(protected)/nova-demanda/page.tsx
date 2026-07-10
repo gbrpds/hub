@@ -1,3 +1,5 @@
+import { PageHeader } from "@/components/ui/PageHeader";
+import { ChecklistIcon, ClockIcon } from "@/components/ui/icons";
 import { NewDemandForm } from "./NewDemandForm";
 
 const BRIEFING_TIPS = [
@@ -18,18 +20,21 @@ const TIME_TABLE = [
 
 export default function NovaDemandaPage() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold tracking-tight">Nova demanda</h1>
-      <p className="mt-2 text-muted">
-        Preencha os detalhes e a gente cuida do resto.
-      </p>
+    <div className="flex flex-col gap-10">
+      <PageHeader
+        title="Nova demanda"
+        description="Preencha os detalhes e a gente cuida do resto."
+      />
 
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px]">
         <NewDemandForm />
 
         <aside className="flex flex-col gap-6">
-          <section className="rounded border border-border bg-surface p-4">
-            <h2 className="mb-3 text-sm font-bold tracking-tight text-foreground">
+          <section className="rounded border border-border bg-surface p-6">
+            <h2 className="mb-3 flex items-center gap-2 text-sm font-bold tracking-tight text-foreground">
+              <span className="text-accent">
+                <ChecklistIcon width={16} height={16} />
+              </span>
               Como pedir um bom conteúdo
             </h2>
             <ul className="flex flex-col gap-3">
@@ -44,8 +49,11 @@ export default function NovaDemandaPage() {
             </ul>
           </section>
 
-          <section className="rounded border border-border bg-surface p-4">
-            <h2 className="mb-3 text-sm font-bold tracking-tight text-foreground">
+          <section className="rounded border border-border bg-surface p-6">
+            <h2 className="mb-3 flex items-center gap-2 text-sm font-bold tracking-tight text-foreground">
+              <span className="text-accent">
+                <ClockIcon width={16} height={16} />
+              </span>
               Quanto tempo leva
             </h2>
             <ul className="flex flex-col gap-2">

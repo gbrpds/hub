@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/format";
-import { Card, CardContent } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { StatCard } from "@/components/ui/StatCard";
+import {
+  AlertIcon,
+  CheckCircleIcon,
+  ChartIcon,
+  ClockIcon,
+  WalletIcon,
+} from "@/components/ui/icons";
 import { RevenueChart, type RevenuePoint } from "./RevenueChart";
 import { PayButton } from "./PayButton";
 
@@ -160,75 +168,73 @@ export default async function FinanceiroPage({
   const nextHref = `/admin/financeiro?m=${monthKey(nextMonth.getFullYear(), nextMonth.getMonth())}`;
 
   return (
-    <div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold tracking-tight">Financeiro</h1>
-        <div className="flex items-center gap-2">
-          <Link
-            href={prevHref}
-            className="rounded-sm border border-border px-2 py-1 text-sm text-foreground hover:bg-surface"
-          >
-            ‹
-          </Link>
-          <span className="min-w-[150px] text-center text-sm font-bold text-foreground">
-            {MONTHS[month]} {year}
+    <div className="flex flex-col gap-10">
+      <PageHeader
+        index="05"
+        title="Financeiro"
+        description="Receitas, pendências e inadimplência do mês."
+        actions={
+          <div className="flex items-center gap-2">
+            <Link
+              href={prevHref}
+              className="flex h-9 w-9 items-center justify-center rounded-sm border border-border text-foreground transition-colors hover:border-accent/50 hover:text-accent"
+            >
+              ‹
+            </Link>
+            <span className="min-w-[150px] text-center text-sm font-bold text-foreground">
+              {MONTHS[month]} {year}
+            </span>
+            <Link
+              href={nextHref}
+              className="flex h-9 w-9 items-center justify-center rounded-sm border border-border text-foreground transition-colors hover:border-accent/50 hover:text-accent"
+            >
+              ›
+            </Link>
+          </div>
+        }
+      />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Esperado no mês"
+          value={totalEsperado}
+          format="currency"
+          icon={<WalletIcon />}
+        />
+        <StatCard
+          label="Recebido"
+          value={totalRecebido}
+          format="currency"
+          icon={<CheckCircleIcon />}
+          tone="success"
+        />
+        <StatCard
+          label="Pendente"
+          value={totalPendente}
+          format="currency"
+          icon={<ClockIcon />}
+          tone="accent"
+        />
+        <StatCard
+          label="Inadimplência"
+          value={overdueTotal}
+          format="currency"
+          icon={<AlertIcon />}
+          tone="danger"
+        />
+      </div>
+
+      <div className="rounded border border-border bg-surface p-6">
+        <h2 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-tight text-foreground">
+          <span className="text-accent">
+            <ChartIcon width={16} height={16} />
           </span>
-          <Link
-            href={nextHref}
-            className="rounded-sm border border-border px-2 py-1 text-sm text-foreground hover:bg-surface"
-          >
-            ›
-          </Link>
-        </div>
-      </div>
-
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardContent>
-            <p className="text-xs uppercase tracking-wide text-muted">
-              Esperado no mês
-            </p>
-            <p className="mt-1 text-xl font-bold text-foreground">
-              {formatCurrency(totalEsperado)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent>
-            <p className="text-xs uppercase tracking-wide text-muted">Recebido</p>
-            <p className="mt-1 text-xl font-bold text-success">
-              {formatCurrency(totalRecebido)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent>
-            <p className="text-xs uppercase tracking-wide text-muted">Pendente</p>
-            <p className="mt-1 text-xl font-bold text-accent">
-              {formatCurrency(totalPendente)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent>
-            <p className="text-xs uppercase tracking-wide text-muted">
-              Inadimplência
-            </p>
-            <p className="mt-1 text-xl font-bold text-danger">
-              {formatCurrency(overdueTotal)}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="mt-6 rounded border border-border bg-surface p-4">
-        <h2 className="mb-4 text-sm font-bold tracking-tight text-foreground">
           Receita recebida (últimos 6 meses)
         </h2>
         <RevenueChart data={chartData} />
       </div>
 
-      <div className="mt-6 overflow-x-auto rounded border border-border">
+      <div className="overflow-x-auto rounded border border-border">
         <table className="w-full min-w-[640px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-border bg-surface text-left text-xs uppercase tracking-wide text-muted">

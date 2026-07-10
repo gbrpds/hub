@@ -137,7 +137,7 @@ export default async function AdminDashboardPage() {
           value={totalPendente}
           format="currency"
           icon={<ClockIcon />}
-          accent
+          tone="accent"
         />
       </div>
 

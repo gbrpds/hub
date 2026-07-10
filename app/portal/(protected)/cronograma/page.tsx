@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentClientId } from "@/lib/current-user";
+import { PageHeader } from "@/components/ui/PageHeader";
 import {
   CronogramaClient,
   type CalendarDemand,
@@ -35,11 +36,12 @@ export default async function PortalCronogramaPage() {
   });
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold tracking-tight">Cronograma</h1>
-      <p className="mt-2 text-muted">Veja quando cada conteúdo sai.</p>
-
-      <div className="mt-6">
+    <div className="flex flex-col gap-10">
+      <PageHeader
+        title="Cronograma"
+        description="Veja quando cada conteúdo sai."
+      />
+      <div>
         {/* Mesmo calendário do admin, porém apontando para o detalhe do
             portal (somente leitura — o cliente só clica para ver). */}
         <CronogramaClient demands={demands} hrefBase="/portal/demandas" />

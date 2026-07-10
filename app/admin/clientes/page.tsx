@@ -92,7 +92,7 @@ export default async function ClientesPage({
           label="Ativos"
           value={ativos}
           icon={<UserCheckIcon />}
-          accent
+          tone="accent"
         />
         <StatCard
           label="Entregues no mês"

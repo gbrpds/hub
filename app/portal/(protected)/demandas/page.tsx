@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentClientId } from "@/lib/current-user";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { DemandasGrid, type PortalDemandCard } from "./DemandasGrid";
 
 export const dynamic = "force-dynamic";
@@ -35,11 +36,12 @@ export default async function PortalDemandasPage() {
   }));
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold tracking-tight">Meus projetos</h1>
-      <p className="mt-2 text-muted">Acompanhe tudo o que estamos criando.</p>
-
-      <div className="mt-6">
+    <div className="flex flex-col gap-10">
+      <PageHeader
+        title="Meus projetos"
+        description="Acompanhe tudo o que estamos criando."
+      />
+      <div>
         <DemandasGrid demands={cards} />
       </div>
     </div>
