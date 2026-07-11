@@ -27,6 +27,7 @@ export function ChatView({
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [demandStates, setDemandStates] = useState<Record<string, DemandState>>({});
+  const [demandErrors, setDemandErrors] = useState<Record<string, string>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Rola pro fim a cada nova mensagem/atualização de stream.
@@ -99,7 +100,11 @@ export function ChatView({
       ...s,
       [msg.id]: result.ok ? "done" : "error",
     }));
-    if (result.ok) router.refresh();
+    if (result.ok) {
+      router.refresh();
+    } else {
+      setDemandErrors((s) => ({ ...s, [msg.id]: result.error }));
+    }
   }
 
   return (
@@ -159,7 +164,9 @@ export function ChatView({
                       </button>
                     )}
                     {state === "error" && (
-                      <span className="text-xs text-red-400">Falhou, tente de novo</span>
+                      <span className="text-xs text-red-400">
+                        {demandErrors[msg.id] ?? "Falhou, tente de novo"}
+                      </span>
                     )}
                   </div>
                 )}

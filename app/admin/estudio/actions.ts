@@ -137,10 +137,14 @@ export async function createDemandFromMessage(
     }
     parsed = JSON.parse(textBlock.text);
   } catch (error) {
-    const detail =
-      error instanceof Anthropic.APIError
-        ? `Erro da API (${error.status}).`
-        : "Falha ao interpretar a mensagem.";
+    console.error("[content-agent] erro ao criar demanda:", error);
+    let detail = "Falha ao interpretar a mensagem.";
+    if (error instanceof Anthropic.APIError) {
+      const apiMessage =
+        (error.error as { error?: { message?: string } })?.error?.message ??
+        error.message;
+      detail = `Erro da API (${error.status}): ${apiMessage}`;
+    }
     return { ok: false, error: detail };
   }
 

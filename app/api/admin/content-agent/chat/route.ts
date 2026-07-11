@@ -92,10 +92,16 @@ export async function POST(request: Request) {
 
         await llm.finalMessage();
       } catch (error) {
-        const detail =
-          error instanceof Anthropic.APIError
-            ? `Erro da API (${error.status}).`
-            : "Erro ao gerar resposta.";
+        console.error("[content-agent] erro na geração:", error);
+        let detail = "Erro ao gerar resposta.";
+        if (error instanceof Anthropic.APIError) {
+          // Mostra a mensagem real da API (ex.: saldo insuficiente, modelo
+          // sem acesso) — é o que permite diagnosticar um 400.
+          const apiMessage =
+            (error.error as { error?: { message?: string } })?.error?.message ??
+            error.message;
+          detail = `Erro da API (${error.status}): ${apiMessage}`;
+        }
         controller.enqueue(encoder.encode(`\n\n⚠️ ${detail}`));
         full += `\n\n⚠️ ${detail}`;
       } finally {
