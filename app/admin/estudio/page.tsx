@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAdminId } from "@/lib/current-user";
-import { isAgentConfigured } from "@/lib/anthropic";
+import { isAgentConfigured } from "@/lib/ai";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EstudioIcon } from "@/components/admin/nav-icons";
 import { NewChatForm } from "./NewChatForm";
@@ -51,9 +51,9 @@ export default async function EstudioPage() {
 
       {!isAgentConfigured() && (
         <div className="rounded border border-yellow-500/40 bg-yellow-500/5 px-4 py-3 text-sm text-yellow-200/90">
-          A chave <code className="font-mono">ANTHROPIC_API_KEY</code> ainda não
-          está configurada no servidor. Adicione-a nas variáveis de ambiente da
-          Vercel (escopo do projeto) para o agente funcionar.
+          A chave <code className="font-mono">GEMINI_API_KEY</code> ainda não
+          está configurada no servidor. Pegue uma grátis em aistudio.google.com
+          e adicione nas variáveis de ambiente da Vercel (escopo do projeto).
         </div>
       )}
 

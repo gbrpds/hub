@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { ApiError, type Content } from "@google/genai";
 import { prisma } from "@/lib/prisma";
 import { canActAsAdmin } from "@/lib/guards";
 import { getCurrentAdminId } from "@/lib/current-user";
-import { getAnthropic, CONTENT_MODEL } from "@/lib/anthropic";
+import { getGemini, CONTENT_MODEL } from "@/lib/ai";
 import { buildSystemPrompt } from "@/lib/content-agent";
 
 export const dynamic = "force-dynamic";
@@ -17,10 +17,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
   }
 
-  const anthropic = getAnthropic();
-  if (!anthropic) {
+  const gemini = getGemini();
+  if (!gemini) {
     return NextResponse.json(
-      { error: "ANTHROPIC_API_KEY não configurada no servidor." },
+      { error: "GEMINI_API_KEY não configurada no servidor." },
       { status: 503 },
     );
   }
@@ -60,48 +60,38 @@ export async function POST(request: Request) {
     select: { role: true, content: true },
   });
 
-  const messages: Anthropic.MessageParam[] = history.map((m) => ({
-    role: m.role === "USER" ? "user" : "assistant",
-    content: m.content,
+  // Gemini usa "user" e "model" (não "assistant").
+  const contents: Content[] = history.map((m) => ({
+    role: m.role === "USER" ? "user" : "model",
+    parts: [{ text: m.content }],
   }));
 
-  const system = await buildSystemPrompt(ownerId, chat.clientId);
+  const systemInstruction = await buildSystemPrompt(ownerId, chat.clientId);
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
       let full = "";
       try {
-        const llm = anthropic.messages.stream({
+        const result = await gemini.models.generateContentStream({
           model: CONTENT_MODEL,
-          max_tokens: 8000,
-          thinking: { type: "adaptive" },
-          system,
-          messages,
+          contents,
+          config: { systemInstruction },
         });
 
-        for await (const event of llm) {
-          if (
-            event.type === "content_block_delta" &&
-            event.delta.type === "text_delta"
-          ) {
-            full += event.delta.text;
-            controller.enqueue(encoder.encode(event.delta.text));
+        for await (const chunk of result) {
+          const text = chunk.text;
+          if (text) {
+            full += text;
+            controller.enqueue(encoder.encode(text));
           }
         }
-
-        await llm.finalMessage();
       } catch (error) {
         console.error("[content-agent] erro na geração:", error);
-        let detail = "Erro ao gerar resposta.";
-        if (error instanceof Anthropic.APIError) {
-          // Mostra a mensagem real da API (ex.: saldo insuficiente, modelo
-          // sem acesso) — é o que permite diagnosticar um 400.
-          const apiMessage =
-            (error.error as { error?: { message?: string } })?.error?.message ??
-            error.message;
-          detail = `Erro da API (${error.status}): ${apiMessage}`;
-        }
+        const detail =
+          error instanceof ApiError
+            ? `Erro da API (${error.status}): ${error.message}`
+            : "Erro ao gerar resposta.";
         controller.enqueue(encoder.encode(`\n\n⚠️ ${detail}`));
         full += `\n\n⚠️ ${detail}`;
       } finally {

@@ -180,7 +180,7 @@ export function ChatView({
       <div className="border-t border-border p-3">
         {!configured && (
           <p className="mb-2 text-xs text-yellow-200/80">
-            Configure a ANTHROPIC_API_KEY para conversar com o agente.
+            Configure a GEMINI_API_KEY para conversar com o agente.
           </p>
         )}
         <div className="flex items-end gap-2">

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAdminId } from "@/lib/current-user";
-import { isAgentConfigured } from "@/lib/anthropic";
+import { isAgentConfigured } from "@/lib/ai";
 import { ChatView, type ChatMessage } from "./ChatView";
 
 export const dynamic = "force-dynamic";

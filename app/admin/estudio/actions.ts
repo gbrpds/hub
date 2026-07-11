@@ -2,11 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import Anthropic from "@anthropic-ai/sdk";
+import { ApiError, Type } from "@google/genai";
 import { prisma } from "@/lib/prisma";
 import { canActAsAdmin } from "@/lib/guards";
 import { getCurrentAdminId } from "@/lib/current-user";
-import { getAnthropic, CONTENT_MODEL } from "@/lib/anthropic";
+import { getGemini, CONTENT_MODEL } from "@/lib/ai";
 import type { ContentType } from "@/app/generated/prisma/client";
 
 const CONTENT_TYPES = ["POST", "CARROSSEL", "REELS", "STORY", "VIDEO_LONGO"] as const;
@@ -93,58 +93,48 @@ export async function createDemandFromMessage(
   });
   if (!chat) return { ok: false, error: "Conversa não encontrada." };
 
-  const anthropic = getAnthropic();
-  if (!anthropic) return { ok: false, error: "IA não configurada no servidor." };
+  const gemini = getGemini();
+  if (!gemini) return { ok: false, error: "IA não configurada no servidor." };
 
   let parsed: {
     title: string;
-    contentType: string | null;
+    contentType: string;
     description: string;
     caption: string;
   };
 
   try {
-    const response = await anthropic.messages.create({
+    const response = await gemini.models.generateContent({
       model: CONTENT_MODEL,
-      max_tokens: 2000,
-      system:
-        "Extraia uma única demanda de conteúdo do texto fornecido. title: nome curto e claro. contentType: um de POST, CARROSSEL, REELS, STORY, VIDEO_LONGO, ou null se não der pra inferir. description: o roteiro/ideia central. caption: legenda sugerida (vazio se não houver). Responda apenas no formato pedido.",
-      messages: [{ role: "user", content }],
-      output_config: {
-        format: {
-          type: "json_schema",
-          schema: {
-            type: "object",
-            properties: {
-              title: { type: "string" },
-              contentType: {
-                type: ["string", "null"],
-                enum: [...CONTENT_TYPES, null],
-              },
-              description: { type: "string" },
-              caption: { type: "string" },
-            },
-            required: ["title", "contentType", "description", "caption"],
-            additionalProperties: false,
+      contents: [{ role: "user", parts: [{ text: content }] }],
+      config: {
+        systemInstruction:
+          "Extraia uma única demanda de conteúdo do texto fornecido. title: nome curto e claro. contentType: um de POST, CARROSSEL, REELS, STORY, VIDEO_LONGO, ou string vazia se não der pra inferir. description: o roteiro/ideia central. caption: legenda sugerida (vazio se não houver).",
+        // Extração simples — sem thinking, pra ser rápido e barato.
+        thinkingConfig: { thinkingBudget: 0 },
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            contentType: { type: Type.STRING },
+            description: { type: Type.STRING },
+            caption: { type: Type.STRING },
           },
+          required: ["title", "contentType", "description", "caption"],
         },
       },
     });
 
-    const textBlock = response.content.find((b) => b.type === "text");
-    if (!textBlock || textBlock.type !== "text") {
-      return { ok: false, error: "IA não retornou dados." };
-    }
-    parsed = JSON.parse(textBlock.text);
+    const text = response.text;
+    if (!text) return { ok: false, error: "IA não retornou dados." };
+    parsed = JSON.parse(text);
   } catch (error) {
     console.error("[content-agent] erro ao criar demanda:", error);
-    let detail = "Falha ao interpretar a mensagem.";
-    if (error instanceof Anthropic.APIError) {
-      const apiMessage =
-        (error.error as { error?: { message?: string } })?.error?.message ??
-        error.message;
-      detail = `Erro da API (${error.status}): ${apiMessage}`;
-    }
+    const detail =
+      error instanceof ApiError
+        ? `Erro da API (${error.status}): ${error.message}`
+        : "Falha ao interpretar a mensagem.";
     return { ok: false, error: detail };
   }
 
