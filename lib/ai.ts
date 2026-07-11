@@ -2,8 +2,11 @@ import "server-only";
 import { GoogleGenAI } from "@google/genai";
 
 // Motor do agente de conteúdo: Google Gemini (tier gratuito do AI Studio).
-// gemini-2.5-flash tem ótima qualidade em PT-BR e roda no plano grátis.
-export const CONTENT_MODEL = "gemini-2.5-flash";
+// Usa o alias "-latest", que sempre aponta pro flash mais recente disponível
+// (modelos com número fixo, como gemini-2.5-flash, vão sendo aposentados pra
+// novas contas). Dá pra fixar outro via env GEMINI_MODEL — veja os modelos
+// disponíveis pra sua chave em /api/admin/content-agent/models.
+export const CONTENT_MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
 
 // A chave vem de GEMINI_API_KEY (server-only) — nunca exponha no client.
 // Retorna null se não estiver configurada, pra a UI avisar em vez de estourar.
